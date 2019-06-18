@@ -19,6 +19,9 @@ bool parseDir(const std::string & dirPath, const std::string & format, std::vect
 	} else if ( format == "JPG" )
 	{
 		pattern = ".JPG";
+	} else if ( format == "jpg" )
+	{
+		pattern = ".jpg";
 	} else if ( format == "TIF" )
 	{
 		pattern = ".tif";

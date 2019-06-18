@@ -285,7 +285,7 @@ bool Image::load(const std::string & filePath)
 	{
 		result = loadBmp(filePath);
 		
-	} else if ( (extension == "tif") || (extension == "tiff") )
+	} else if ( (extension == "tif") || (extension == "tiff") || (extension == "TIF") )
 	{
 		result = loadTiff(filePath);
 		
@@ -410,6 +410,7 @@ bool Image::loadTiff(const std::string & filePath)
 	delete [] greenTmp;
 	delete [] blueTmp;
 	
+    
 	return true;
 }
 
@@ -1699,6 +1700,43 @@ bool Image::add(const Image & im)
 
 
 //----------------------------------------------------------------------
+//---- Addition pixel a pixel de 2 images avec masque
+//----------------------------------------------------------------------
+bool Image::addWithMask(const Image & im, const Image & mask, Image & imCardinal)
+{
+    //---- Verification des dimensions
+    if ( (m_dx != im.m_dx) || (m_dy != im.m_dy) )
+    {
+        std::cout << "ERREUR : Les images n'ont pas la meme dimension" << std::endl;
+        return false;
+    }
+
+    //---- Parcours des pixels
+    for (int index = 0; index < m_nbPixel; ++index)
+    {
+        if ( mask.m_redData[index] == 0 )
+        {
+            m_redData[index] += im.m_redData[index];
+            m_greenData[index] += im.m_greenData[index];
+            m_blueData[index] += im.m_blueData[index];
+            
+            imCardinal.m_redData[index] += 1;
+            imCardinal.m_greenData[index] += 1;
+            imCardinal.m_blueData[index] += 1;
+        }
+        
+        if ( m_redData[index] > m_maxRed ) { m_maxRed = m_redData[index]; }
+        if ( m_greenData[index] > m_maxGreen ) { m_maxGreen = m_greenData[index]; }
+        if ( m_blueData[index] > m_maxBlue ) { m_maxBlue = m_blueData[index]; }
+        
+    }
+
+    return true;
+
+}
+
+
+//----------------------------------------------------------------------
 //---- Soustraction de l'image par une autre
 //----------------------------------------------------------------------
 bool Image::subtract(const Image & im)
@@ -1771,6 +1809,55 @@ bool Image::div(double denominateur)
 	}
 	
 	return true;
+}
+
+//----------------------------------------------------------------------
+//---- Division pixel a pixel d'une image par une autre
+//----------------------------------------------------------------------
+bool Image::divByIm(const Image & imDiv, double biais)
+{
+    //---- Verification des dimensions
+    if ( (m_dx != imDiv.m_dx) || (m_dy != imDiv.m_dy) )
+    {
+        std::cout << "ERREUR : Les images n'ont pas la meme dimension" << std::endl;
+        std::cout << "         Image courante " << m_dx << " x " << m_dy << std::endl;
+        std::cout << "         Image a diviser " << imDiv.m_dx << " x " << imDiv.m_dy << std::endl;
+        return false;
+    }
+
+    //---- Reinitialisation des max
+    m_maxRed = 0.0;
+    m_maxGreen = 0.0;
+    m_maxBlue = 0.0;
+
+    //---- Parcours des pixels
+    for (int index = 0; index < m_nbPixel; ++index)
+    {
+        //--- Canal rouge
+        if ( imDiv.m_redData[index] != 0 )
+        {
+            m_redData[index] /= (imDiv.m_redData[index] + biais);
+        }
+        if ( m_redData[index] > m_maxRed ) { m_maxRed = m_redData[index]; }
+        
+        //--- Canal vert
+        if ( imDiv.m_greenData[index] != 0 )
+        {
+            m_greenData[index] /= (imDiv.m_greenData[index] + biais);
+        }
+        if ( m_greenData[index] > m_maxGreen ) { m_maxGreen = m_greenData[index]; }
+        
+        //--- Canal bleu
+        if ( imDiv.m_blueData[index] != 0 )
+        {
+            m_blueData[index] /= (imDiv.m_blueData[index] + biais);
+        }
+        if ( m_blueData[index] > m_maxBlue ) { m_maxBlue = m_blueData[index]; }
+        
+    }
+
+    return true;
+
 }
 
 

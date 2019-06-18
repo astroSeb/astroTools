@@ -168,12 +168,18 @@ class Image
 	//---- Addition pixel a pixel de 2 images
 	bool add(const Image & im);
 	
+    //---- Addition pixel a pixel de 2 images avec masque
+	bool addWithMask(const Image & im, const Image & mask, Image & imCardinal);
+    
 	//---- Soustraction de l'image par une autre
 	bool subtract(const Image & im);
 	
 	//---- Division de l'ensemble des pixels l'image
 	bool div(double denominateur);
 	
+    //---- Division pixel a pixel d'une image par une autre
+	bool divByIm(const Image & imDiv, double biais = 0.0);
+    
 	//---- Calcul de la moyenne de 'limage
 	double getMeanGreenImage() const;
 	

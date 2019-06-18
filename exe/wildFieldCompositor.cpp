@@ -45,34 +45,34 @@ void CallBackFunc(int event, int x, int y, int flags, void* userdata)
 }
 
 
-//----------------------------------------------------------------------
-//---- Selectiion des points de liaison
-//----------------------------------------------------------------------
-std::vector<cv::Point2f> selectPoints(const Image & currentImage)
-{
-	std::vector<cv::Point2f> vecLinkPoints;
+//~ //----------------------------------------------------------------------
+//~ //---- Selectiion des points de liaison
+//~ //----------------------------------------------------------------------
+//~ std::vector<cv::Point2f> selectPoints(const Image & currentImage)
+//~ {
+	//~ std::vector<cv::Point2f> vecLinkPoints;
 	
-	cv::Mat imMat = currentImage.getCvMatFromRaw();
-	cv::Point2f selectedPoint;
+	//~ cv::Mat imMat = currentImage.getCvMatFromRaw();
+	//~ cv::Point2f selectedPoint;
 	
-	for (int index = 0; index < NB_LINK_POINTS; ++index)
-	{
+	//~ for (int index = 0; index < NB_LINK_POINTS; ++index)
+	//~ {
 	
-		namedWindow("Display", cv::WINDOW_NORMAL);
-		cv::setMouseCallback("Display", CallBackFunc, &selectedPoint);
+		//~ namedWindow("Display", cv::WINDOW_NORMAL);
+		//~ cv::setMouseCallback("Display", CallBackFunc, &selectedPoint);
 		
-		cv::imshow("Display", imMat);
-		cv::waitKey(0);
+		//~ cv::imshow("Display", imMat);
+		//~ cv::waitKey(0);
 		
-		std::cout << "INFO  : Point de liaison " << index << " : " << selectedPoint.x << ", " << selectedPoint.y << std::endl;
+		//~ std::cout << "INFO  : Point de liaison " << index << " : " << selectedPoint.x << ", " << selectedPoint.y << std::endl;
 		
-		vecLinkPoints.push_back(selectedPoint);
-	}
+		//~ vecLinkPoints.push_back(selectedPoint);
+	//~ }
 	
 	
 	
-	return vecLinkPoints;
-}
+	//~ return vecLinkPoints;
+//~ }
 
 //----------------------------------------------------------------------
 //---- Extraction d'un pattern de correlation
@@ -200,7 +200,7 @@ cv::Point2f selectFirstPoint(const Image & currentImage, bool fullDynamic)
 	//---- Detection de l'etoile
 	//--- Binarisation
 	Image imSeuil = imZoom.seuillage(SEUIL_BIN);
-	imSeuil.disp();
+	//imSeuil.disp();
 	
 	//--- Detection de l'etoile
 	Image::sBoundingBox starBb = imSeuil.detectBiggestObj();
@@ -229,10 +229,10 @@ cv::Point2f selectFirstPoint(const Image & currentImage, bool fullDynamic)
 //----------------------------------------------------------------------
 void usage()
 {
-	std::cout << "Usage: ./wildFieldCompositor   <Repertoire des images>" << std::endl;
-	std::cout << "                               <Format des images (NEF, JPG, tif, ...)" << std::endl;
-	std::cout << "                               <Image master dark>" << std::endl;
-
+    std::cout << "Usage: ./wildFieldCompositor   <Repertoire des images>" << std::endl;
+    std::cout << "                               <Format des images (NEF, JPG, tif, ...)" << std::endl;
+    std::cout << "                               <Image master dark>" << std::endl;
+    std::cout << "                               [<Masque premier plan>]" << std::endl;
 }
 
 
@@ -241,55 +241,80 @@ void usage()
 //----------------------------------------------------------------------
 int main(int argc, char ** argv)
 {
-	//---- Gestion des arguments
-	if ( argc != 4 )
-	{
-		usage();
-		return -1;
-	}
-	
-	std::string imageDir = argv[1];
-	std::string format = argv[2];
-	std::string masterDarkPath = argv[3];
-	
-	
-	//---- Test sur le format des images
-	if ( (format != "NEF") && (format != "JPG") && (format != "tif") )
-	{
-		std::cout << "ERREUR : Le format demande " << format << " n'est pas pris en compte" << std::endl;
-		return 1;
-	}
-	
-	
-	//---- Parsing du repertoire
-	std::vector<std::string> vecImPath;
-	if ( !parseDir(imageDir, format, vecImPath) )
-	{
-		std::cout << "ERROR : Unable to parse input directory " << imageDir << std::endl;
-		return 1;
-	}
-	int nbImages = vecImPath.size();
-	std::cout << "INFO   : " << nbImages << " images a traiter" << std::endl;
-	
-	
-	//---- Ouverture de la premiere image
-	Image firstImage;
-	if ( ! firstImage.load(vecImPath[0]) )
-	{
-		std::cout << "ERREUR : Echec lors du chargement de l'image " << vecImPath[0] << std::endl;
-		return 1;
-	}
-	//firstImage.disp();
-	
-	
-	//---- Chargement du master dark
-	Image masterDark;
-	if ( ! masterDark.load(masterDarkPath) )
-	{
-		std::cout << "ERREUR : Echec lors du chargement de l'image de dark " << masterDarkPath << std::endl;
-		return 1;
-	}
-	
+    //---- Gestion des arguments
+    if ( (argc < 4) || (argc > 5) )
+    {
+        std::cout << "ERREUR : Nombre d'argument incorrect" << std::endl;
+        usage();
+        return -1;
+    }
+    std::cout << argc << std::endl;
+    bool flagMasque = false;
+     std::string premierPlanPath = "";
+
+    std::string imageDir = argv[1];
+    std::string format = argv[2];
+    std::string masterDarkPath = argv[3];
+    
+    //--- Gestion optionnelle du masque de premier plan
+    if ( argc == 5 )
+    {
+        flagMasque = true;
+        premierPlanPath = argv[4];
+        std::cout << "argv4: " << argv[4] << std::endl;
+        std::cout << "masque: " << premierPlanPath << std::endl;
+    }
+
+
+    //---- Test sur le format des images
+    if ( (format != "NEF") && (format != "JPG") && (format != "jpg") && (format != "tif") )
+    {
+        std::cout << "ERREUR : Le format demande " << format << " n'est pas pris en compte" << std::endl;
+        return 1;
+    }
+
+
+    //---- Parsing du repertoire
+    std::vector<std::string> vecImPath;
+    if ( !parseDir(imageDir, format, vecImPath) )
+    {
+        std::cout << "ERROR : Unable to parse input directory " << imageDir << std::endl;
+        return 1;
+    }
+    int nbImages = vecImPath.size();
+    std::cout << "INFO   : " << nbImages << " images a traiter" << std::endl;
+
+
+    //---- Ouverture de la premiere image
+    Image firstImage;
+    if ( ! firstImage.load(vecImPath[0]) )
+    {
+        std::cout << "ERREUR : Echec lors du chargement de l'image " << vecImPath[0] << std::endl;
+        return 1;
+    }
+    //firstImage.disp();
+
+
+    //---- Chargement du master dark
+    Image masterDark;
+    if ( ! masterDark.load(masterDarkPath) )
+    {
+        std::cout << "ERREUR : Echec lors du chargement de l'image de dark " << masterDarkPath << std::endl;
+        return 1;
+    }
+
+    
+    //---- Chargement du masque premier plan si demande
+    Image masquePremierPlan;
+    Image imCardinal(firstImage.getXSize(), firstImage.getYSize());
+    if ( flagMasque )
+    {
+        if ( ! masquePremierPlan.load(premierPlanPath) )
+        {
+            std::cout << "ERREUR : Echec lors du chargement du masque de premier plan " << premierPlanPath << std::endl;
+            return 1;
+        }
+    }
 	
 	
 	
@@ -298,7 +323,8 @@ int main(int argc, char ** argv)
 	cv::Mat finalMat = firstImage.getCvMatNew(true);
 	Image finalImage(finalMat);
 	
-	
+	//---- Image de cardinalite pour la moyenne
+    
 	
 	//---- Selection manuelle des points de liaison sur la premiere image
 	std::cout << "INFO   : Selectionner les points de liaison sur la premiere image" << std::endl;
@@ -351,21 +377,37 @@ int main(int argc, char ** argv)
 		cv::Mat correctedMat(taille, CV_8UC3);
 		cv::warpPerspective(currentIm.getCvMatNew(true), correctedMat, currentTransfo, taille);
 		
-		//---- Stack
-		finalImage.add(Image(correctedMat));
-		
+        //---- Avec masque
+        if ( flagMasque )
+        {
+            cv::Mat correctedMask(taille, CV_8UC3);
+            cv::warpPerspective(masquePremierPlan.getCvMatNew(true), correctedMask, currentTransfo, taille);
+            finalImage.addWithMask(correctedMat, correctedMask, imCardinal);
+            
+        //--- Sans masque
+        } else {
+        
+            finalImage.add(Image(correctedMat));
+		}
 		
 		vecPreviousImPoints = vecCurrentFoundPoints;
 	}
 	
 	
 	//---- Moyenne
-	finalImage.div(nbImages);
+    if ( flagMasque )
+    {
+        
+        finalImage.divByIm(imCardinal, 1.0);
+    } else {
+        
+        finalImage.div(nbImages);
+    }
+    
 	finalImage.disp();
 	
 	
 	//---- Sauvegarde image finale
-	//finalMat = finalImage.getCvMatFromRaw();
 	finalMat = finalImage.getCvMatNew(true);
 	std::string finalImPath = imageDir + "/finalImage.TIF";
 	std::cout << "INFO  : Sauvegarde de l'image: " << finalImPath << std::endl;

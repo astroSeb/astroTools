@@ -2,7 +2,7 @@
 
 #-----------------------------------------------------------------------
 #
-#---- Script de configuration a sourcer pour astroViewer
+#---- Script de configuration a sourcer pour astroTools
 #
 #-----------------------------------------------------------------------
 

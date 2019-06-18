@@ -133,17 +133,9 @@ bool computeMeanDark(const std::vector<std::string> & vecImPath, const std::stri
 	
 	//---- Ouverture de la premiere image
 	Image firstIm;
-	if ( format == "JPG" )
+	if ( ! firstIm.load(vecImPath[0]) )
 	{
-		firstIm.loadJpeg(vecImPath[0]);
-	} else if ( format == "TIF" )
-	{
-		firstIm.loadTiff(vecImPath[0]);
-	} else if ( format == "RAW" )
-	{
-		firstIm.loadRaw(vecImPath[0]);
-	} else {
-		std::cout << "ERREUR : Format d'image " << format << " inconnu" << std::endl;
+		std::cout << "ERREUR : Echec lors du chargement de l'image " << vecImPath[0] << std::endl;
 		return false;
 	}
 	
@@ -156,18 +148,14 @@ bool computeMeanDark(const std::vector<std::string> & vecImPath, const std::stri
 	Image currentIm;
 	for (std::vector<std::string>::const_iterator iPath = vecImPath.begin(); iPath != vecImPath.end(); ++iPath)
 	{
+		std::cout << "INFO   : Traitement de l'image " << *iPath << std::endl;
 		//--- Ouverture de l'image courante
-		if ( format == "JPG" )
+		if ( ! currentIm.load(*iPath) )
 		{
-			currentIm.loadJpeg(*iPath);
-		} else if ( format == "TIF" )
-		{
-			currentIm.loadTiff(*iPath);
-		} else if ( format == "RAW" )
-		{
-			currentIm.loadRaw(*iPath);
+			std::cout << "ERREUR : Echec lors du chargement de l'image " << *iPath << std::endl;
+			return false;
 		}
-		
+		//std::cout << "INFO   : Taille de l'image courante " << firstIm.getXSize() << ", " << firstIm.getYSize() << std::endl;
 		if ( ! finalIm.add(currentIm) )
 		{
 			std::cout << "ERREUR : Echec de la somme entre l'image finale et l'image " << *iPath << std::endl;

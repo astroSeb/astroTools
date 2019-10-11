@@ -42,7 +42,7 @@
 
 class Image
 {
-	
+    
 	public:
 	
 	enum Ecolor
@@ -66,16 +66,11 @@ class Image
 	//---- Constructeurs
 	Image();
 	Image(int dx, int dy);
-	//Image(double * data, int dx, int dy);
-	//Image(const Image & other);
+    Image(const Image & other);
 	Image(const cv::Mat & imMat);
 
 	//---- Destructeur
 	~Image();
-	
-	//---- Operateur
-	Image & operator=(const Image & other);
-	Image & operator=(const cv::Mat & other);
 	
 	//---- Setteur
 	void setDimensions(int dx, int dy);
@@ -83,7 +78,8 @@ class Image
 	void setRedValue(double value, int index) { m_redData[index] = value; }
 	void setGreenValue(double value, int index) { m_greenData[index] = value; }
 	void setBlueValue(double value, int index) { m_blueData[index] = value; }
-	
+	void setRaw() { m_isRaw = true; }
+    
 	//---- Getteur
 	int getXSize() const { return m_dx; }
 	int getYSize() const { return m_dy; }
@@ -113,12 +109,12 @@ class Image
 	double * getBlueBuffer() const { return m_blueData; }
 	
 	
-	
-	
+	//---- L'image provient-elle d'un raw
+    bool isRaw() const { return m_isRaw; }
 	
 	//---- Creation d'une imagette avec origine pixellaire
 	Image getRoi(int x0, int y0, int dx, int dy) const;
-	Image getRoi(const Image::sBoundingBox & bBox) const;
+	Image getRoi(const Image::Image::sBoundingBox & bBox) const;
 
 	//---- Creation d'une imagette avec origine sub-pixellaire
 	Image getRoiSub(double x0, double y0, int dx, int dy) const;
@@ -126,11 +122,17 @@ class Image
 	//---- Interpolation bilineaire
 	double interpolBil(double x, double y, Ecolor color) const;
 	
-	//---- Conversion en cv::Mat
+	//---- Conversion en cv::Mat (generique)
+    cv::Mat getCvMatAll() const;
+    
+    //---- Conversion en cv::Mat 8 bits pour affichage
+    cv::Mat getCvMat8bit(bool fullDynamic = false) const;
+    
+    //---- Conversion en cv::Mat
 	cv::Mat getCvMat() const;
 	
 	//---- Conversion en cv::Mat pour une image RAW
-	cv::Mat getCvMatFromRaw(bool fullDynamic = false) const;
+	//cv::Mat getCvMatFromRaw(bool fullDynamic = false) const;
 	
 	//---- Conversion en cv::Mat pour raw et autres
 	cv::Mat getCvMatNew(bool fullDynamic = false) const;
@@ -162,8 +164,11 @@ class Image
 	//---- Lectude d'une ligne image jpeg
 	bool loadJpegLine(const std::string & filePath, int indexLine);
 	
-	//---- Interpolation des donnees RAW pour le dematricage
-	void interpolRaw(LibRaw & RawProcessor, int channel, double * buffer);
+    //---- Ecriture d'une image en tiff 8 ou 16 bits
+    bool writeImTiff(const std::string & filePath);
+    
+	//~ //---- Interpolation des donnees RAW pour le dematricage
+	//~ void interpolRaw(LibRaw & RawProcessor, int channel, double * buffer);
 	
 	//---- Addition pixel a pixel de 2 images
 	bool add(const Image & im);
@@ -188,12 +193,15 @@ class Image
 	
 	//---- Binarisation par seuillage
 	Image seuillage(double seuil);
+    
+    //---- Binarisation par seuillage automatique sur la moyenne du canal vert
+    Image seuillageMeanAuto();
 	
 	//---- Detection d'objets sur image binaire
 	std::vector<Image::sBoundingBox> detectObj() const;
 	
 	//---- Detection d'objets sur image binaire
-	Image::sBoundingBox detectBiggestObj() const;
+	bool detectBiggestObj(Image::sBoundingBox & bbox) const;
 	
 	//---- Retourne l'objet le plus gros
 	Image::sBoundingBox biggestObj(const std::vector<Image::sBoundingBox> & vecObj) const;
@@ -221,8 +229,8 @@ class Image
 	//int dispRaw() const;
 	
 	//---- Affichage a l'ecran de ROI
-	int dispRoi(const std::vector<sBoundingBox> & bBox) const;
-	int dispRoi(const sBoundingBox & bBox) const;
+	int dispRoi(const std::vector<Image::sBoundingBox> & bBox) const;
+	int dispRoi(const Image::sBoundingBox & bBox) const;
 	
 	//---- Zoom centre sur un point donne
 	void zoomOnPoint(const cv::Point & pt, bool fullDynamic = false) const;
@@ -239,6 +247,22 @@ class Image
 	//---- Calcul de l'histogramme de l'image
 	std::vector<double> computeHisto(int nbClasse);
 	
+    //---- Calcul d'un gradient vertical
+    void computeVerticalGradient(double & redCoeff, double & greenCoeff, double & blueCoeff);
+    
+    //---- Suppression d'un gradient vertical
+    void removeVerticalGradient();
+    
+    //---- Calcul d'un gradient horizontal
+    void computeHorizontalGradient(double & redCoeff, double & greenCoeff, double & blueCoeff);
+    
+    //---- Suppression d'un gradient horizontal
+    void removeHorizontalGradient();
+    
+    //---- Merge with mask
+    void mergeWithMask(const Image & firstPlan, const Image & mask);
+    
+    
 protected:
 	
 	

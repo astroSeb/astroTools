@@ -143,6 +143,11 @@ bool computeMeanDark(const std::vector<std::string> & vecImPath, const std::stri
 	finalIm.setDimensions(firstIm.getXSize(), firstIm.getYSize());
 	std::cout << "INFO   : Taille de l'image finale " << firstIm.getXSize() << ", " << firstIm.getYSize() << std::endl;
 	
+    //---- Master dark en raw?
+    if ( firstIm.isRaw() )
+    {
+        finalIm.setRaw();
+    }
 	
 	//---- Boucle sur les images
 	Image currentIm;
@@ -248,13 +253,10 @@ int main(int argc, char ** argv)
 	
 	
 	//---- Sauvegarde image finale
-	cv::Mat finalMat = finalImage.getCvMatNew();
-	std::cout << "INFO  : Sauvegarde de l'image: " << finalImPath << std::endl;
-	
-	
-	if ( ! cv::imwrite(finalImPath, finalMat) )
-	{
+    if ( ! finalImage.writeImTiff(finalImPath) )
+    {
 		std::cout << "ERREUR : Impossible de sauvegarder l'image " << finalImPath << std::endl;
+        return -1;
 	}
 	
 	return 0;

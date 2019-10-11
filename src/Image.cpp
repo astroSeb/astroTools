@@ -53,54 +53,127 @@ Image::Image(int dx, int dy)
 }
 
 
-Image::Image(const cv::Mat & imMat)
+Image::Image(const Image & other)
 {
-	m_dx = imMat.cols;
-	m_dy = imMat.rows;
-	m_nbPixel = m_dx * m_dy;
-	
-	//---- Allocation memoire
-	m_redData = new double[m_nbPixel];
-	m_greenData = new double[m_nbPixel];
-	m_blueData = new double[m_nbPixel];
-	
-	
-	m_maxRed = 0.0;
-	m_maxGreen = 0.0;
-	m_maxBlue = 0.0;
-	
-	m_meanRed = 0.0;
-	m_meanGreen = 0.0;
-	m_meanBlue = 0.0;
-	
-	//---- Parcours des pixels
-	cv::Vec3b currentPix;
-	for (int index = 0; index < m_nbPixel; ++index)
+
+	m_dx = other.m_dx;
+	m_dy = other.m_dy;
+	m_nbPixel = other.m_nbPixel;
+    
+
+	if (other.m_redData != NULL)
 	{
-		currentPix = imMat.at<cv::Vec3b>(index);
-		
-		m_redData[index] = currentPix[2];
-		m_greenData[index] = currentPix[1];
-		m_blueData[index] = currentPix[0];
-		
-		if ( currentPix[2] > m_maxRed ) { m_maxRed = currentPix[2]; }
-		if ( currentPix[1] > m_maxGreen ) { m_maxGreen = currentPix[1]; }
-		if ( currentPix[0] > m_maxBlue ) { m_maxBlue = currentPix[0]; }
-		
-		m_meanRed += currentPix[2];
-		m_meanGreen += currentPix[1];
-		m_meanBlue += currentPix[0];
-		
+        m_redData = new double[m_nbPixel];
+		memcpy(m_redData, other.m_redData, sizeof(double) * m_nbPixel);
 	}
 	
-	m_meanRed /= m_nbPixel;
-	m_meanGreen /= m_nbPixel;
-	m_meanBlue /= m_nbPixel;
+	if (other.m_greenData != NULL)
+	{
+        m_greenData = new double[m_nbPixel];
+		memcpy(m_greenData, other.m_greenData, sizeof(double) * m_nbPixel);
+	}
 	
-	m_isRaw = false;
+	if (other.m_blueData != NULL)
+	{
+        m_blueData = new double[m_nbPixel];
+		memcpy(m_blueData, other.m_blueData, sizeof(double) * m_nbPixel);
+	}
+	
+	m_isRaw = other.m_isRaw;
+	
+	m_maxRed = other.m_maxRed;
+	m_maxGreen = other.m_maxGreen;
+	m_maxBlue = other.m_maxBlue;
+	
+	m_meanRed = other.m_meanRed;
+	m_meanGreen = other.m_meanGreen;
+	m_meanBlue = other.m_meanBlue;
 	
 }
 
+
+Image::Image(const cv::Mat & imMat)
+{
+    m_dx = imMat.cols;
+    m_dy = imMat.rows;
+    m_nbPixel = m_dx * m_dy;
+
+    //---- Allocation memoire
+    m_redData = new double[m_nbPixel];
+    m_greenData = new double[m_nbPixel];
+    m_blueData = new double[m_nbPixel];
+
+
+    m_maxRed = 0.0;
+    m_maxGreen = 0.0;
+    m_maxBlue = 0.0;
+
+    m_meanRed = 0.0;
+    m_meanGreen = 0.0;
+    m_meanBlue = 0.0;
+
+    //---- Type de cv::Mat
+    //--- CV_8UC3
+    if ( imMat.type() == 16 )
+    {
+        //-- Parcours des pixels
+        cv::Vec3b currentPix;
+        for (int index = 0; index < m_nbPixel; ++index)
+        {
+            currentPix = imMat.at<cv::Vec3b>(index);
+            
+            m_redData[index] = currentPix[2];
+            m_greenData[index] = currentPix[1];
+            m_blueData[index] = currentPix[0];
+            
+            if ( currentPix[2] > m_maxRed ) { m_maxRed = currentPix[2]; }
+            if ( currentPix[1] > m_maxGreen ) { m_maxGreen = currentPix[1]; }
+            if ( currentPix[0] > m_maxBlue ) { m_maxBlue = currentPix[0]; }
+            
+            m_meanRed += currentPix[2];
+            m_meanGreen += currentPix[1];
+            m_meanBlue += currentPix[0];
+            
+        }
+        
+        m_isRaw = false;
+    
+    //--- CV_16UC3
+    } else if ( imMat.type() == 18 )
+    {
+        //-- Parcours des pixels
+        cv::Vec3w currentPix;
+        for (int index = 0; index < m_nbPixel; ++index)
+        {
+            currentPix = imMat.at<cv::Vec3w>(index);
+            
+            m_redData[index] = currentPix[2];
+            m_greenData[index] = currentPix[1];
+            m_blueData[index] = currentPix[0];
+            
+            if ( currentPix[2] > m_maxRed ) { m_maxRed = currentPix[2]; }
+            if ( currentPix[1] > m_maxGreen ) { m_maxGreen = currentPix[1]; }
+            if ( currentPix[0] > m_maxBlue ) { m_maxBlue = currentPix[0]; }
+            
+            m_meanRed += currentPix[2];
+            m_meanGreen += currentPix[1];
+            m_meanBlue += currentPix[0];
+            
+        }
+        
+        m_isRaw = true;
+    
+    } else {
+        
+        std::cout << "ERREUR : Type de cv::Mat " << imMat.type() << " inconnu" << std::endl;
+        return;
+    }
+    
+    m_meanRed /= m_nbPixel;
+    m_meanGreen /= m_nbPixel;
+    m_meanBlue /= m_nbPixel;
+    
+}
 
 
 //----------------------------------------------------------------------
@@ -123,112 +196,6 @@ Image::~Image()
 		delete [] m_blueData;
 	}
 	
-}
-
-
-//----------------------------------------------------------------------
-//---- Operateur =
-//----------------------------------------------------------------------
-Image & Image::operator=(const Image & other)
-{
-
-	m_dx = other.m_dx;
-	m_dy = other.m_dy;
-	m_nbPixel = other.m_nbPixel;
-	
-
-	if ( m_redData == NULL )
-	{
-		m_redData = new double[m_nbPixel];
-		memset(m_redData, 0, sizeof(double) * m_nbPixel);
-	}
-	
-	if ( m_greenData == NULL )
-	{
-		m_greenData = new double[m_nbPixel];
-		memset(m_greenData, 0, sizeof(double) * m_nbPixel);
-	}
-	
-	if ( m_blueData == NULL )
-	{
-		m_blueData = new double[m_nbPixel];
-		memset(m_blueData, 0, sizeof(double) * m_nbPixel);
-	}
-
-	if (other.m_redData != NULL)
-	{
-		memcpy(m_redData, other.m_redData, sizeof(double) * m_nbPixel);
-	}
-	
-	if (other.m_greenData != NULL)
-	{
-		memcpy(m_greenData, other.m_greenData, sizeof(double) * m_nbPixel);
-	}
-	
-	if (other.m_blueData != NULL)
-	{
-		memcpy(m_blueData, other.m_blueData, sizeof(double) * m_nbPixel);
-	}
-	
-	m_isRaw = other.m_isRaw;
-	
-	m_maxRed = other.m_maxRed;
-	m_maxGreen = other.m_maxGreen;
-	m_maxBlue = other.m_maxBlue;
-	
-	m_meanRed = other.m_meanRed;
-	m_meanGreen = other.m_meanGreen;
-	m_meanBlue = other.m_meanBlue;
-	
-	return *this;
-}
-
-
-Image & Image::operator=(const cv::Mat & other)
-{
-	
-	m_dx = other.cols;
-	m_dy = other.rows;
-	m_nbPixel = m_dx * m_dy;
-	
-	//---- Allocation memoire
-	m_redData = new double[m_nbPixel];
-	m_greenData = new double[m_nbPixel];
-	m_blueData = new double[m_nbPixel];
-	
-	
-	m_maxRed = 0.0;
-	m_maxGreen = 0.0;
-	m_maxBlue = 0.0;
-	
-	//---- Parcours des pixels
-	cv::Vec3b currentPix;
-	for (int index = 0; index < m_nbPixel; ++index)
-	{
-		currentPix = other.at<cv::Vec3b>(index);
-		
-		m_redData[index] = currentPix[2];
-		m_greenData[index] = currentPix[1];
-		m_blueData[index] = currentPix[0];
-		
-		if ( currentPix[2] > m_maxRed ) { m_maxRed = currentPix[2]; }
-		if ( currentPix[1] > m_maxGreen ) { m_maxGreen = currentPix[1]; }
-		if ( currentPix[0] > m_maxBlue ) { m_maxBlue = currentPix[0]; }
-		
-		m_meanRed += currentPix[2];
-		m_meanGreen += currentPix[1];
-		m_meanBlue += currentPix[0];
-		
-	}
-	
-	m_meanRed /= m_nbPixel;
-	m_meanGreen /= m_nbPixel;
-	m_meanBlue /= m_nbPixel;
-	
-	m_isRaw = false;
-	
-	
-	return *this;
 }
 
 
@@ -289,6 +256,10 @@ bool Image::load(const std::string & filePath)
 	{
 		result = loadTiff(filePath);
 		
+    } else if ( extension == "NEF" )
+    {
+        result = loadRaw(filePath);
+        
 	} else {
 		std::cout << "ERREUR : Format d'image " << extension << " inconnu" << std::endl;
 		result = false;
@@ -517,12 +488,13 @@ void Image::loadTiffLine(TIFF * tifFile, int lineNumber)
 	
 }
 
+
 //----------------------------------------------------------------------
 //---- Lecture d'une image NEF
 //----------------------------------------------------------------------
 bool Image::loadRaw(const std::string & filePath)
 {
-	//---- Ouverture du fichier
+    //---- Ouverture du fichier
 	LibRaw RawProcessor;
 	if ( RawProcessor.open_file(filePath.c_str()) != LIBRAW_SUCCESS )
 	{
@@ -552,57 +524,65 @@ bool Image::loadRaw(const std::string & filePath)
 		return false;
 	}
 	
+	
+	RawProcessor.imgdata.params.output_color = 1;
+	RawProcessor.imgdata.params.user_qual = 3;
+	RawProcessor.imgdata.params.output_bps = -4;
+	RawProcessor.imgdata.params.bright = 1.0;
+    //RawProcessor.imgdata.params.gamm[0] = 1;
+    //RawProcessor.imgdata.params.gamm[1] = 1;
+    //RawProcessor.imgdata.params.no_auto_scale = 1;
+    //RawProcessor.imgdata.params.use_auto_wb = 1;
+    RawProcessor.imgdata.params.use_camera_wb = 1;
+	
 	//---- Decoupe des donnees par couleur
-	RawProcessor.raw2image();
+	RawProcessor.dcraw_process();
 	
-	//---- Dematricage
-	//--- Canal rouge
-	interpolRaw(RawProcessor, CH_RED, m_redData);
-	//--- Canal bleu
-	interpolRaw(RawProcessor, CH_BLUE, m_blueData);
-	
-	//--- Canaux vert
-	double * bufferGreen1 = new double[m_nbPixel];
-	double * bufferGreen2 = new double[m_nbPixel];
-	interpolRaw(RawProcessor, CH_GREEN1, bufferGreen1);
-	interpolRaw(RawProcessor, CH_GREEN2, bufferGreen2);
-	
-	m_maxRed = 0.0;
+    //---- Initialisations
+    m_maxRed = 0.0;
 	m_maxGreen = 0.0;
 	m_maxBlue = 0.0;
 	
 	m_meanRed = 0.0;
 	m_meanGreen = 0.0;
 	m_meanBlue = 0.0;
-	
+    
+	//--- Parcours des pixels
+	double currentVal;
 	for (int index = 0; index < m_nbPixel; ++index)
 	{
-		m_greenData[index] = (bufferGreen1[index] + bufferGreen2[index]) / 3.0;
+		//-- Canal rouge
+		currentVal = (double)RawProcessor.imgdata.image[index][CH_RED];
+		m_redData[index] = currentVal;
+		if ( currentVal > m_maxRed ) { m_maxRed = currentVal; }
+        m_meanRed += currentVal;
 		
-		if ( m_redData[index] > m_maxRed ) { m_maxRed = m_redData[index]; }
-		if ( m_greenData[index] > m_maxGreen ) { m_maxGreen = m_greenData[index]; }
-		if ( m_blueData[index] > m_maxBlue ) { m_maxBlue = m_blueData[index]; }
-		
-		m_meanRed += m_redData[index];
-		m_meanGreen += m_greenData[index];
-		m_meanBlue += m_blueData[index];
+		//-- Canal vert 
+		currentVal = (double)RawProcessor.imgdata.image[index][CH_GREEN1];
+		m_greenData[index] = currentVal;
+		if ( currentVal > m_maxGreen ) { m_maxGreen = currentVal; }
+		m_meanGreen += currentVal;
+        
+		//-- Canal bleu
+		currentVal = (double)RawProcessor.imgdata.image[index][CH_BLUE];
+		m_blueData[index] = currentVal;
+		if ( currentVal > m_maxBlue ) { m_maxBlue = currentVal; }
+        m_meanBlue += currentVal;
+        
 	}
 	
-	m_meanRed /= m_nbPixel;
+    m_meanRed /= m_nbPixel;
 	m_meanGreen /= m_nbPixel;
 	m_meanBlue /= m_nbPixel;
-	
-	delete [] bufferGreen1;
-	delete [] bufferGreen2;
-	
-	m_isRaw = true;
-	
+    
+    m_isRaw = true;
+    
 	return true;
 }
 
 
 //----------------------------------------------------------------------
-//---- Lectude d'une image jpeg
+//---- Lecture d'une image jpeg
 //----------------------------------------------------------------------
 bool Image::loadJpeg(const std::string & filePath)
 {
@@ -895,6 +875,25 @@ bool Image::loadJpegLine(const std::string & filePath, int indexLine)
 
 
 //----------------------------------------------------------------------
+//---- Ecriture d'une image en tiff 8 ou 16 bits
+//----------------------------------------------------------------------
+bool Image::writeImTiff(const std::string & filePath)
+{
+    
+    cv::Mat imMat = getCvMatAll();
+    
+    if ( ! cv::imwrite(filePath, imMat) )
+    {
+        std::cout << "ERREUR : Impossible de sauvegarder l'image " << filePath << std::endl;
+        return false;
+    }
+    
+    return true;
+    
+}
+
+
+//----------------------------------------------------------------------
 //---- Retourne la valeur d'un pixel en 8 bits
 //----------------------------------------------------------------------
 int8_t Image::getRedValue8b(int col, int row, bool fullDynamic) const
@@ -968,51 +967,6 @@ int8_t Image::getBlueValue8b(int col, int row, bool fullDynamic) const
 	return current8Val;
 }
 
-//----------------------------------------------------------------------
-//---- Interpolation des donnees RAW pour le dematricage
-//----------------------------------------------------------------------
-void Image::interpolRaw(LibRaw & RawProcessor, int channel, double * buffer)
-{
-	
-	ushort currentVal = 0;
-	ushort val00 = 0;
-	ushort val01 = 0;
-	ushort val02 = 0;
-	ushort val10 = 0;
-	ushort val12 = 0;
-	ushort val20 = 0;
-	ushort val21 = 0;
-	ushort val22 = 0;
-	
-	for (int row = 1; row < m_dy-1; ++row)
-	{
-		for (int col = 1; col < m_dx-1; ++col)
-		{
-			currentVal = RawProcessor.imgdata.image[row*m_dx+col][channel];
-			
-			if (currentVal == 0 )
-			{
-				val00 = RawProcessor.imgdata.image[(row-1)*m_dx+(col-1)][channel];
-				val01 = RawProcessor.imgdata.image[(row-1)*m_dx+(col)][channel];
-				val02 = RawProcessor.imgdata.image[(row-1)*m_dx+(col+1)][channel];
-				val10 = RawProcessor.imgdata.image[(row)*m_dx+(col-1)][channel];
-				val12 = RawProcessor.imgdata.image[(row)*m_dx+(col+1)][channel];
-				val20 = RawProcessor.imgdata.image[(row+1)*m_dx+(col-1)][channel];
-				val21 = RawProcessor.imgdata.image[(row+1)*m_dx+(col)][channel];
-				val22 = RawProcessor.imgdata.image[(row+1)*m_dx+(col+1)][channel];
-				
-				buffer[row*m_dx+col] = (2 * val00 + 4 * val01 + 2 * val02 + 4 * val10 + 4 * val12 + 2 * val20 + 4 * val21 + 2 * val22) / 8;
-				
-			} else {
-				buffer[row*m_dx+col] = (double)currentVal;
-			}
-			
-		}
-	}
-	
-	
-}
-
 
 //----------------------------------------------------------------------
 //---- Creation d'une imagette avec origine pixellaire
@@ -1068,7 +1022,7 @@ Image Image::getRoi(int x0, int y0, int dx, int dy) const
 }
 
 //----------------------------------------------------------------------
-Image Image::getRoi(const sBoundingBox & bBox) const
+Image Image::getRoi(const Image::sBoundingBox & bBox) const
 {
 	int dx = bBox.xMax - bBox.xMin + 1;
 	int dy = bBox.yMax - bBox.yMin + 1;
@@ -1167,8 +1121,6 @@ Image Image::getRoiSub(double x0, double y0, int dx, int dy) const
 
 
 
-
-
 //----------------------------------------------------------------------
 //---- Interpolation bilineaire
 //----------------------------------------------------------------------
@@ -1255,6 +1207,220 @@ double Image::interpolBil(double x, double y, Ecolor color) const
 
 
 //----------------------------------------------------------------------
+//---- Conversion en cv::Mat cas general
+//----------------------------------------------------------------------
+cv::Mat Image::getCvMatAll() const
+{
+    cv::Mat imMat;
+    
+    //---- Cas d'une image raw (16 bits)-> CV_16UC3
+    if ( m_isRaw )
+    {
+        imMat = cv::Mat(m_dy, m_dx, CV_16UC3);
+        
+        //--- Parcours des pixels
+        cv::Vec3w currentPix;
+        int index = 0;
+        
+        for (int ligne = 0; ligne < m_dy; ++ligne)
+        {
+            for (int col = 0; col < m_dx; ++col)
+            {
+                //-- Canal rouge
+                if ( m_redData[index] > MAX_16_BIT )
+                {
+                    currentPix[2] = (ushort)MAX_16_BIT;
+                } else {
+                    currentPix[2] = (ushort)m_redData[index];
+                }
+                
+                //-- Canal vert
+                if ( m_greenData[index] > MAX_16_BIT )
+                {
+                    currentPix[1] = (ushort)MAX_16_BIT;
+                } else {
+                    currentPix[1] = (ushort)m_greenData[index];
+                }
+                
+                //-- Canal bleu
+                if ( m_blueData[index] > MAX_16_BIT )
+                {
+                    currentPix[0] = (ushort)MAX_16_BIT;
+                } else {
+                    currentPix[0] = (ushort)m_blueData[index];
+                }
+                
+                index += 1;
+                
+                imMat.at<cv::Vec3w>(ligne, col) = currentPix;
+            }
+        }
+    
+    //---- Cas d'une image 8 bits
+    } else {
+        
+        imMat = cv::Mat(m_dy, m_dx, CV_8UC3);
+        
+        //--- Parcours des pixels
+        cv::Vec3b currentPix;
+        int index = 0;
+        
+        for (int ligne = 0; ligne < m_dy; ++ligne)
+        {
+            for (int col = 0; col < m_dx; ++col)
+            {
+                //-- Canal rouge
+                if ( m_redData[index] > MAX_8_BIT )
+                {
+                    currentPix[2] = (uchar)MAX_8_BIT;
+                } else {
+                    currentPix[2] = (uchar)std::round(m_redData[index]);
+                }
+                
+                //-- Canal vert
+                if ( m_greenData[index] > MAX_8_BIT )
+                {
+                    currentPix[1] = (uchar)MAX_8_BIT;
+                } else {
+                    currentPix[1] = (uchar)std::round(m_greenData[index]);
+                }
+                
+                //-- Canal bleu
+                if ( m_blueData[index] > MAX_8_BIT )
+                {
+                    currentPix[0] = (uchar)MAX_8_BIT;
+                } else {
+                    currentPix[0] = (uchar)std::round(m_blueData[index]);
+                }
+                
+                index += 1;
+                
+                imMat.at<cv::Vec3b>(ligne, col) = currentPix;
+            }
+        }
+    }
+    
+    
+    return imMat;
+}
+
+
+//----------------------------------------------------------------------
+//---- Conversion en cv::Mat 8 bits pour affichage
+//----------------------------------------------------------------------
+cv::Mat Image::getCvMat8bit(bool fullDynamic) const
+{
+    cv::Mat imMat(m_dy, m_dx, CV_8UC3);
+    cv::Vec3b currentPix;
+    int index = 0;
+
+    //---- Cas ou l'image vient d'un RAW
+    if ( m_isRaw )
+    {
+        //--- On prends toute la plage dynamique
+        if ( fullDynamic )
+        {
+            //-- Test
+            if ( (m_maxRed == 0.0 ) || (m_maxGreen == 0.0) || (m_maxBlue == 0.0) )
+            {
+                std::cout << "WARN   : Une des valeurs RGB max de l'image est a 0 -> Probleme de dynamique" << std::endl;
+            }
+            
+            //-- Conversion
+            int index = 0;
+            for (int ligne = 0; ligne < m_dy; ++ligne)
+            {
+                for (int col = 0; col < m_dx; ++col)
+                {
+                    currentPix[2] = std::round(m_redData[index] * MAX_8_BIT / m_maxRed);
+                    currentPix[1] = std::round(m_greenData[index] * MAX_8_BIT / m_maxGreen);
+                    currentPix[0] = std::round(m_blueData[index] * MAX_8_BIT / m_maxBlue);
+                    index += 1;
+                    
+                    imMat.at<cv::Vec3b>(ligne, col) = currentPix;
+                }
+            }
+        
+        //--- On etire la dynamique a max / 4
+        } else {
+            //---- Ajustement radiometrique
+            int index = 0;
+            for (int y = 0; y < m_dy; ++y)
+            {
+                for (int x = 0; x < m_dx; ++x)
+                {
+                    
+                    currentPix[2] = std::round(m_redData[index] * MAX_8_BIT / (m_maxRed / 4.0));
+                    currentPix[1] = std::round(m_greenData[index] * MAX_8_BIT / (m_maxGreen / 4.0));
+                    currentPix[0] = std::round(m_blueData[index] * MAX_8_BIT / (m_maxBlue / 4.0));
+                    
+                    
+                    imMat.at<cv::Vec3b>(y, x) = currentPix;
+                    
+                    index += 1;
+                }
+            }
+        
+        }
+        
+        
+    //---- Cas ou l'image vient d'un tiff ou JPG
+    } else {
+        
+        if ( fullDynamic )
+        {
+            //-- Test
+            if ( (m_maxRed == 0.0 ) || (m_maxGreen == 0.0) || (m_maxBlue == 0.0) )
+            {
+                std::cout << "WARN   : Une des valeurs RGB max de l'image est a 0 -> Probleme de dynamique" << std::endl;
+            }
+            
+            //--- Parcours de l'image
+            for (int ligne = 0; ligne < m_dy; ++ligne)
+            {
+                for (int col = 0; col < m_dx; ++col)
+                {
+                    currentPix[2] = std::round(m_redData[index] * MAX_8_BIT / m_maxRed);
+                    currentPix[1] = std::round(m_greenData[index] * MAX_8_BIT / m_maxGreen);
+                    currentPix[0] = std::round(m_blueData[index] * MAX_8_BIT / m_maxBlue);
+                    index += 1;
+                    
+                    imMat.at<cv::Vec3b>(ligne, col) = currentPix;
+                }
+            }
+        } else {
+            
+            //--- Parcours de l'image
+            for (int ligne = 0; ligne < m_dy; ++ligne)
+            {
+                for (int col = 0; col < m_dx; ++col)
+                {
+                    currentPix[2] = std::round(m_redData[index]);
+                    currentPix[1] = std::round(m_greenData[index]);
+                    currentPix[0] = std::round(m_blueData[index]);
+                    index += 1;
+                    
+                    imMat.at<cv::Vec3b>(ligne, col) = currentPix;
+                }
+            }
+        }
+    }
+
+    return imMat;
+
+}
+
+
+
+
+
+
+
+
+
+
+
+//----------------------------------------------------------------------
 //---- Conversion en cv::Mat
 //----------------------------------------------------------------------
 cv::Mat Image::getCvMat() const
@@ -1282,71 +1448,71 @@ cv::Mat Image::getCvMat() const
 }
 
 
-//----------------------------------------------------------------------
-//---- Conversion en cv::Mat pour une image RAW
-//----------------------------------------------------------------------
-cv::Mat Image::getCvMatFromRaw(bool fullDynamic) const
-{
+//~ //----------------------------------------------------------------------
+//~ //---- Conversion en cv::Mat pour une image RAW
+//~ //----------------------------------------------------------------------
+//~ cv::Mat Image::getCvMatFromRaw(bool fullDynamic) const
+//~ {
 	
-	cv::Mat imMat(m_dy, m_dx, CV_8UC3);
-	cv::Vec3b currentPix;
+	//~ cv::Mat imMat(m_dy, m_dx, CV_8UC3);
+	//~ cv::Vec3b currentPix;
 	
-	if ( fullDynamic )
-	{
+	//~ if ( fullDynamic )
+	//~ {
 		
-		//---- Conversion
-		int index = 0;
-		for (int ligne = 0; ligne < m_dy; ++ligne)
-		{
-			for (int col = 0; col < m_dx; ++col)
-			{
-				currentPix[2] = std::round(m_redData[index] * MAX_8_BIT / m_maxRed);
-				currentPix[1] = std::round(m_greenData[index] * MAX_8_BIT / m_maxGreen);
-				currentPix[0] = std::round(m_blueData[index] * MAX_8_BIT / m_maxBlue);
-				index += 1;
+		//~ //---- Conversion
+		//~ int index = 0;
+		//~ for (int ligne = 0; ligne < m_dy; ++ligne)
+		//~ {
+			//~ for (int col = 0; col < m_dx; ++col)
+			//~ {
+				//~ currentPix[2] = std::round(m_redData[index] * MAX_8_BIT / m_maxRed);
+				//~ currentPix[1] = std::round(m_greenData[index] * MAX_8_BIT / m_maxGreen);
+				//~ currentPix[0] = std::round(m_blueData[index] * MAX_8_BIT / m_maxBlue);
+				//~ index += 1;
 				
-				imMat.at<cv::Vec3b>(ligne, col) = currentPix;
-			}
-		}
+				//~ imMat.at<cv::Vec3b>(ligne, col) = currentPix;
+			//~ }
+		//~ }
 		
-	} else {
-		//---- Ajustement radiometrique
-		for (int y = 0; y < m_dy; ++y)
-		{
-			for (int x = 0; x < m_dx; ++x)
-			{
+	//~ } else {
+		//~ //---- Ajustement radiometrique
+		//~ for (int y = 0; y < m_dy; ++y)
+		//~ {
+			//~ for (int x = 0; x < m_dx; ++x)
+			//~ {
 				
-				if ( m_redData[y*m_dx+x] > MAX_8_BIT )
-				{
-					currentPix[2] = MAX_8_BIT;
-				} else {
-					currentPix[2] = m_redData[y*m_dx+x];
-				}
+				//~ if ( m_redData[y*m_dx+x] > MAX_8_BIT )
+				//~ {
+					//~ currentPix[2] = MAX_8_BIT;
+				//~ } else {
+					//~ currentPix[2] = m_redData[y*m_dx+x];
+				//~ }
 				
-				if ( m_greenData[y*m_dx+x] > MAX_8_BIT )
-				{
-					currentPix[1] = MAX_8_BIT;
-				} else {
-					currentPix[1] = m_greenData[y*m_dx+x];
-				}
+				//~ if ( m_greenData[y*m_dx+x] > MAX_8_BIT )
+				//~ {
+					//~ currentPix[1] = MAX_8_BIT;
+				//~ } else {
+					//~ currentPix[1] = m_greenData[y*m_dx+x];
+				//~ }
 				
-				if ( m_blueData[y*m_dx+x] > MAX_8_BIT )
-				{
-					currentPix[0] = MAX_8_BIT;
-				} else {
-					currentPix[0] = m_blueData[y*m_dx+x];
-				}
+				//~ if ( m_blueData[y*m_dx+x] > MAX_8_BIT )
+				//~ {
+					//~ currentPix[0] = MAX_8_BIT;
+				//~ } else {
+					//~ currentPix[0] = m_blueData[y*m_dx+x];
+				//~ }
 				
-				imMat.at<cv::Vec3b>(y, x) = currentPix;
-			}
-		}
+				//~ imMat.at<cv::Vec3b>(y, x) = currentPix;
+			//~ }
+		//~ }
 	
-	}
+	//~ }
 	
 	
-	return imMat;
+	//~ return imMat;
 	
-}
+//~ }
 
 
 //----------------------------------------------------------------------
@@ -1475,7 +1641,8 @@ cv::Mat Image::getCvMatNew(bool fullDynamic) const
 //----------------------------------------------------------------------
 int Image::disp(bool fullDynamic) const
 {
-	cv::Mat imMat = getCvMatNew(fullDynamic);
+	//cv::Mat imMat = getCvMatNew(fullDynamic);
+    cv::Mat imMat = getCvMat8bit(fullDynamic);
 	
 	namedWindow("Display", cv::WINDOW_NORMAL);
 	cv::imshow("Display", imMat);
@@ -1492,12 +1659,12 @@ int Image::disp(bool fullDynamic) const
 //----------------------------------------------------------------------
 //---- Affichage a l'ecran de ROI
 //----------------------------------------------------------------------
-int Image::dispRoi(const std::vector<sBoundingBox> & vecBBox) const
+int Image::dispRoi(const std::vector<Image::sBoundingBox> & vecBBox) const
 {
 	cv::Mat imMat = getCvMatNew();
 	
 	//---- Parcours du vecteur
-	for (std::vector<sBoundingBox>::const_iterator iObj = vecBBox.begin(); iObj != vecBBox.end(); ++iObj)
+	for (std::vector<Image::sBoundingBox>::const_iterator iObj = vecBBox.begin(); iObj != vecBBox.end(); ++iObj)
 	{
 		cv::Point UL;
 		UL.x = iObj->xMin;
@@ -1522,7 +1689,7 @@ int Image::dispRoi(const std::vector<sBoundingBox> & vecBBox) const
 //----------------------------------------------------------------------
 //---- Affichage a l'ecran de ROI
 //----------------------------------------------------------------------
-int Image::dispRoi(const sBoundingBox & vecBBox) const
+int Image::dispRoi(const Image::sBoundingBox & vecBBox) const
 {
 	cv::Mat imMat = getCvMatNew();
 	
@@ -1925,17 +2092,46 @@ Image Image::seuillage(double seuil)
 	return imSeuil;
 }
 
+
+//----------------------------------------------------------------------
+//---- Binarisation par seuillage automatique sur la moyenne du canal vert
+//----------------------------------------------------------------------
+Image Image::seuillageMeanAuto()
+{
+	Image imSeuil(m_dx, m_dy);
+    
+	//---- Parcours des pixels
+	for (int index = 0; index < m_nbPixel; ++index)
+	{
+		
+		if ( m_greenData[index] >= 2.0*m_meanGreen )
+		{
+			imSeuil.m_redData[index] = MAX_8_BIT;
+			imSeuil.m_greenData[index] = MAX_8_BIT;
+			imSeuil.m_blueData[index] = MAX_8_BIT;
+		}
+	}
+	
+	m_maxRed = MAX_8_BIT;
+	m_maxGreen = MAX_8_BIT;
+	m_maxBlue = MAX_8_BIT;
+	
+	return imSeuil;
+}
+
+
+
 //----------------------------------------------------------------------
 //---- Detection d'objets sur image binaire
 //----------------------------------------------------------------------
 std::vector<Image::sBoundingBox> Image::detectObj() const
 {
-	std::vector<sBoundingBox> vecColObj;
-	std::vector<sBoundingBox> vecObj;
+	std::vector<Image::sBoundingBox> vecColObj;
+	std::vector<Image::sBoundingBox> vecObj;
 	
 	//---- Parcours des colonnes
 	double previousSum = 0.0;
-	sBoundingBox currentObj;
+	Image::sBoundingBox currentObj;
 	for (int col = 0; col < m_dx; ++col)
 	{
 		//--- Calcul de la somme des pixels pour une colonne
@@ -1961,11 +2157,11 @@ std::vector<Image::sBoundingBox> Image::detectObj() const
 	
 	
 	//---- Parcours des objets "colonne"
-	for (std::vector<sBoundingBox>::iterator iObj = vecColObj.begin(); iObj != vecColObj.end(); ++iObj)
+	for (std::vector<Image::sBoundingBox>::iterator iObj = vecColObj.begin(); iObj != vecColObj.end(); ++iObj)
 	{
 		//--- Parcours des lignes
 		double previousSum = 0.0;
-		sBoundingBox currentObj;
+		Image::sBoundingBox currentObj;
 		for (int ligne = 0; ligne < m_dy; ++ligne)
 		{
 			//- Calcul de la somme des pixels sur les colonnes de l'objet
@@ -2001,13 +2197,13 @@ std::vector<Image::sBoundingBox> Image::detectObj() const
 //----------------------------------------------------------------------
 //---- Retourne l'objet le plus gros
 //----------------------------------------------------------------------
-Image::sBoundingBox Image::biggestObj(const std::vector<Image::sBoundingBox> & vecObj) const
+Image::sBoundingBox Image::biggestObj(const std::vector<Image::Image::sBoundingBox> & vecObj) const
 {
-	sBoundingBox bigObj;
+	Image::sBoundingBox bigObj;
 	
 	//---- Parcours des objets
 	double maxArea = 0.0;
-	for (std::vector<Image::sBoundingBox>::const_iterator iObj = vecObj.begin(); iObj != vecObj.end(); ++iObj)
+	for (std::vector<Image::Image::sBoundingBox>::const_iterator iObj = vecObj.begin(); iObj != vecObj.end(); ++iObj)
 	{
 		//--- Calcul de surface
 		double area = (iObj->xMax - iObj->xMin + 1) * (iObj->yMax - iObj->yMin + 1);
@@ -2026,14 +2222,22 @@ Image::sBoundingBox Image::biggestObj(const std::vector<Image::sBoundingBox> & v
 //----------------------------------------------------------------------
 //---- Detection d'objets sur image binaire
 //----------------------------------------------------------------------
-Image::sBoundingBox Image::detectBiggestObj() const
+bool Image::detectBiggestObj(Image::sBoundingBox & bbox) const
 {
 	
 	std::vector<Image::sBoundingBox> vecObj = detectObj();
 	std::cout << "INFO   : " << vecObj.size() << " objets detectes" << std::endl;
 	
-	return biggestObj(vecObj);
-	
+    if ( vecObj.size() > 0 )
+    {
+        bbox = biggestObj(vecObj);
+        
+    } else {
+        
+        return false;
+    }
+    
+    return true;
 }
 
 
@@ -2267,5 +2471,232 @@ std::vector<double> Image::computeHisto(int nbClasse)
 }
 
 
+//----------------------------------------------------------------------
+//---- Calcul d'un gradient vertical
+//----------------------------------------------------------------------
+void Image::computeVerticalGradient(double & redCoeff, double & greenCoeff, double & blueCoeff)
+{
+    int nbLines = 10;
+    
+    //---- Calcul sur les n premieres lignes
+    double beginRedVal = 0.0;
+    double beginGreenVal = 0.0;
+    double beginBlueVal = 0.0;
+    
+    for (int lig = 0; lig < nbLines; ++lig)
+    {
+        double currentMeanValR = 0.0;
+        double currentMeanValG = 0.0;
+        double currentMeanValB = 0.0;
+        for (int col = 0; col < m_dx; ++col)
+        {
+            currentMeanValR += m_redData[lig*m_dx+col];
+            currentMeanValG += m_greenData[lig*m_dx+col];
+            currentMeanValB += m_blueData[lig*m_dx+col];
+            
+        }
+        
+        beginRedVal += currentMeanValR / double(m_dx);
+        beginGreenVal += currentMeanValG / double(m_dx);
+        beginBlueVal += currentMeanValB / double(m_dx);
+    }
+    
+    beginRedVal /= double(nbLines);
+    beginGreenVal /= double(nbLines);
+    beginBlueVal /= double(nbLines);
+    
+    
+    //---- Calcul sur les n dernieres lignes
+    double endRedVal = 0.0;
+    double endGreenVal = 0.0;
+    double endBlueVal = 0.0;
+    
+    for (int lig = m_dy-nbLines; lig < m_dy; ++lig)
+    {
+        double currentMeanValR = 0.0;
+        double currentMeanValG = 0.0;
+        double currentMeanValB = 0.0;
+        for (int col = 0; col < m_dx; ++col)
+        {
+            currentMeanValR += m_redData[lig*m_dx+col];
+            currentMeanValG += m_greenData[lig*m_dx+col];
+            currentMeanValB += m_blueData[lig*m_dx+col];
+            
+        }
+        
+        endRedVal += currentMeanValR / double(m_dx);
+        endGreenVal += currentMeanValG / double(m_dx);
+        endBlueVal += currentMeanValB / double(m_dx);
+    }
+    
+    endRedVal /= double(nbLines);
+    endGreenVal /= double(nbLines);
+    endBlueVal /= double(nbLines);
+    
+    
+    redCoeff = (endRedVal - beginRedVal + 1) / double(m_dy);
+    greenCoeff = (endGreenVal - beginGreenVal + 1) / double(m_dy);
+    blueCoeff = (endBlueVal - beginBlueVal + 1) / double(m_dy);
+    
+}
+
+
+//----------------------------------------------------------------------
+//---- Suppression d'un gradient vertical
+//----------------------------------------------------------------------
+void Image::removeVerticalGradient()
+{
+    //---- Calcul du gradient vertical
+    double redCoeff, greenCoeff, blueCoeff;
+    computeVerticalGradient(redCoeff, greenCoeff, blueCoeff);
+    
+    //---- Suppression du gradient
+    double redVal, greenVal, blueVal;
+    for (int lig = 0; lig < m_dy; ++lig)
+    {
+        redVal = lig * redCoeff;
+        greenVal = lig * greenCoeff;
+        blueVal = lig * blueCoeff;
+        
+        
+        for (int col = 0; col < m_dx; ++col)
+        {
+            m_redData[lig*m_dx+col] -= redVal;
+            m_greenData[lig*m_dx+col] -= greenVal;
+            m_blueData[lig*m_dx+col] -= blueVal;
+            
+        }
+        
+    }
+    
+}
+
+
+//----------------------------------------------------------------------
+//---- Calcul d'un gradient horizontal
+//----------------------------------------------------------------------
+void Image::computeHorizontalGradient(double & redCoeff, double & greenCoeff, double & blueCoeff)
+{
+    int nbCol = 10;
+    
+    //---- Calcul sur les n premieres lignes
+    double beginRedVal = 0.0;
+    double beginGreenVal = 0.0;
+    double beginBlueVal = 0.0;
+    
+    for (int col = 0; col < nbCol; ++col)
+    {
+        double currentMeanValR = 0.0;
+        double currentMeanValG = 0.0;
+        double currentMeanValB = 0.0;
+        for (int lig = 0; lig < m_dy; ++lig)
+        {
+            currentMeanValR += m_redData[lig*m_dx+col];
+            currentMeanValG += m_greenData[lig*m_dx+col];
+            currentMeanValB += m_blueData[lig*m_dx+col];
+            
+        }
+        
+        beginRedVal += currentMeanValR / double(m_dy);
+        beginGreenVal += currentMeanValG / double(m_dy);
+        beginBlueVal += currentMeanValB / double(m_dy);
+    }
+    
+    beginRedVal /= double(nbCol);
+    beginGreenVal /= double(nbCol);
+    beginBlueVal /= double(nbCol);
+    
+    
+    //---- Calcul sur les n dernieres lignes
+    double endRedVal = 0.0;
+    double endGreenVal = 0.0;
+    double endBlueVal = 0.0;
+    
+    for (int col = m_dx-nbCol; col < m_dx; ++col)
+    {
+        double currentMeanValR = 0.0;
+        double currentMeanValG = 0.0;
+        double currentMeanValB = 0.0;
+        for (int lig = 0; lig < m_dy; ++lig)
+        {
+            currentMeanValR += m_redData[lig*m_dx+col];
+            currentMeanValG += m_greenData[lig*m_dx+col];
+            currentMeanValB += m_blueData[lig*m_dx+col];
+            
+        }
+        
+        endRedVal += currentMeanValR / double(m_dy);
+        endGreenVal += currentMeanValG / double(m_dy);
+        endBlueVal += currentMeanValB / double(m_dy);
+    }
+    
+    endRedVal /= double(nbCol);
+    endGreenVal /= double(nbCol);
+    endBlueVal /= double(nbCol);
+    
+    
+    redCoeff = (endRedVal - beginRedVal + 1) / double(m_dx);
+    greenCoeff = (endGreenVal - beginGreenVal + 1) / double(m_dx);
+    blueCoeff = (endBlueVal - beginBlueVal + 1) / double(m_dx);
+    
+}
+
+
+//----------------------------------------------------------------------
+//---- Suppression d'un gradient horizontal
+//----------------------------------------------------------------------
+void Image::removeHorizontalGradient()
+{
+    //---- Calcul du gradient horizontal
+    double redCoeff, greenCoeff, blueCoeff;
+    computeHorizontalGradient(redCoeff, greenCoeff, blueCoeff);
+    
+    //---- Suppression du gradient
+    double redVal, greenVal, blueVal;
+    for (int col = 0; col < m_dx; ++col)
+    {
+        redVal = col * redCoeff;
+        greenVal = col * greenCoeff;
+        blueVal = col * blueCoeff;
+        
+        
+        for (int lig = 0; lig < m_dy; ++lig)
+        {
+            m_redData[lig*m_dx+col] -= redVal;
+            m_greenData[lig*m_dx+col] -= greenVal;
+            m_blueData[lig*m_dx+col] -= blueVal;
+            
+        }
+        
+    }
+    
+}
+
+
+//----------------------------------------------------------------------
+//---- Merge with mask
+//----------------------------------------------------------------------
+void Image::mergeWithMask(const Image & firstPlan, const Image & mask)
+{
+    
+    //---- Parcours des pixels
+    for (int index = 0; index < m_nbPixel; ++index)
+    {
+        if ( mask.m_redData[index] > 0 )
+        {
+            m_redData[index] = firstPlan.m_redData[index];
+            m_greenData[index] = firstPlan.m_greenData[index];
+            m_blueData[index] = firstPlan.m_blueData[index];
+            
+        }
+        
+        if ( m_redData[index] > m_maxRed ) { m_maxRed = m_redData[index]; }
+        if ( m_greenData[index] > m_maxGreen ) { m_maxGreen = m_greenData[index]; }
+        if ( m_blueData[index] > m_maxBlue ) { m_maxBlue = m_blueData[index]; }
+        
+    }
+    
+    
+}
 
 

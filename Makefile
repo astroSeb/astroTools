@@ -31,6 +31,21 @@ SRCS_MASTER_DARK =	exe/masterDark.cpp \
 PROG_MASTER_DARK = bin/masterDark
 
 
+#---- debruiteDark
+SRCS_DEBRUITE_DARK =	exe/debruiteDark.cpp \
+						src/Image.cpp \
+						src/Util.cpp
+
+PROG_DEBRUITE_DARK = bin/debruiteDark
+
+#---- firstPlanStacker
+SRCS_FIRST_PLAN =	exe/firstPlanStacker.cpp \
+					src/Image.cpp \
+					src/Util.cpp
+
+PROG_FIRST_PLAN = bin/firstPlanStacker
+
+
 PROG_TEST = bin/test
 
 LIBS = 	-lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_features2d -lopencv_calib3d -lopencv_nonfree -lopencv_flann -ltiff -lraw -ljpeg
@@ -48,7 +63,8 @@ LIB_DIR = -L $(OPENCV_LIB) \
 		  -L $(LIBJPEG_LIB)
 
 
-all: $(PROG_COMPO) $(PROG_WILD_COMPO) $(PROG_MANUAL_COMPO) $(PROG_MASTER_DARK)
+#all: $(PROG_COMPO) $(PROG_WILD_COMPO) $(PROG_MANUAL_COMPO) $(PROG_MASTER_DARK) $(PROG_DEBRUITE_DARK) $(PROG_FIRST_PLAN)
+all: $(PROG_WILD_COMPO) $(PROG_MASTER_DARK) $(PROG_FIRST_PLAN)
 
 $(PROG_COMPO):$(SRCS_COMPO)
 	mkdir -p bin
@@ -66,8 +82,16 @@ $(PROG_MASTER_DARK):$(SRCS_MASTER_DARK)
 	mkdir -p bin
 	$(CC) $(CFLAGS) $(INCLUDE) -o $(PROG_MASTER_DARK) $(SRCS_MASTER_DARK) $(LIB_DIR) $(LIBS) 
 
+$(PROG_DEBRUITE_DARK):$(SRCS_DEBRUITE_DARK)
+	mkdir -p bin
+	$(CC) $(CFLAGS) $(INCLUDE) -o $(PROG_DEBRUITE_DARK) $(SRCS_DEBRUITE_DARK) $(LIB_DIR) $(LIBS)
+
+$(PROG_FIRST_PLAN):$(SRCS_FIRST_PLAN)
+	mkdir -p bin
+	$(CC) $(CFLAGS) $(INCLUDE) -o $(PROG_FIRST_PLAN) $(SRCS_FIRST_PLAN) $(LIB_DIR) $(LIBS)
 
 clean:
-	rm -f $(PROG_COMPO) $(PROG_WILD_COMPO) $(PROG_MANUAL_COMPO) $(PROG_MASTER_DARK)
+	rm -f $(PROG_COMPO) $(PROG_WILD_COMPO) $(PROG_MANUAL_COMPO) $(PROG_MASTER_DARK) $(PROG_DEBRUITE_DARK) $(PROG_FIRST_PLAN)
+
 
 

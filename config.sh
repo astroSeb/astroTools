@@ -28,5 +28,7 @@ export LIBRAW_LIB=${EXTERNE_ROOT}/LibRaw-0.18.2/install/lib
 export LIBJPEG_INC=${EXTERNE_ROOT}/jpeg-6b/install/include
 export LIBJPEG_LIB=${EXTERNE_ROOT}/jpeg-6b/install/lib
 
+#---- astroTools
+export ASTROTOOLS_ROOT=/home/STN/Diver/astroTools
 
 export LD_LIBRARY_PATH=${TIFF_LIB}:${OPENCV_LIB}:${LIBRAW_LIB}:${LIBJPEG_LIB}:$LD_LIBRARY_PATH

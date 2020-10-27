@@ -38,7 +38,7 @@ int main(int argc, char ** argv)
     std::string imOutPath = argv[2];
 
     //---- Chargement de l'image
-    Image im;
+    astroT::Image im;
     if ( ! im.loadRaw(imPath) )
     {
         std::cout << "ERREUR : Echec lors du chargement de l'image " << imPath << std::endl;

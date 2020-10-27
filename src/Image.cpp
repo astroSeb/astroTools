@@ -524,16 +524,25 @@ bool Image::loadRaw(const std::string & filePath)
 		return false;
 	}
 	
-	
-	RawProcessor.imgdata.params.output_color = 1;
-	RawProcessor.imgdata.params.user_qual = 3;
-	RawProcessor.imgdata.params.output_bps = -4;
-	RawProcessor.imgdata.params.bright = 1.0;
-    //RawProcessor.imgdata.params.gamm[0] = 1;
-    //RawProcessor.imgdata.params.gamm[1] = 1;
-    //RawProcessor.imgdata.params.no_auto_scale = 1;
+	//---- Options
+    //--- Espace colorimetrique de sortie (0-6) : raw, sRGB, Adobe, Wide, ProPhoto, XYZ, ACES
+    RawProcessor.imgdata.params.output_color = 6;
+    //--- Interpolation (0, 1, 2, 3, 4, 11, 12) : linear, VGN, PPG, AHD, DCB, DHT, AAHD
+    RawProcessor.imgdata.params.user_qual = 12;
+    //--- Dynamique de sortie (8, 16) : utile si on exporte directement une image
+    //RawProcessor.imgdata.params.output_bps = 16;
+    //--- Brightness default 1.0
+    //RawProcessor.imgdata.params.bright = 1.0;
+    //--- Balance des blancs automatique
     //RawProcessor.imgdata.params.use_auto_wb = 1;
-    RawProcessor.imgdata.params.use_camera_wb = 1;
+    //--- Balance des blancs camera
+    //RawProcessor.imgdata.params.use_camera_wb = 1;
+    //--- Augmentation automatique de la luminosote (0, 1) : oui, non
+    RawProcessor.imgdata.params.no_auto_bright = 1;
+    //--- Nombre de passage du filtre median
+    //RawProcessor.imgdata.params.med_passes = 0;
+    //--- Reduction de bruit fbdd (0, 1, 2) : non, light, full
+    //RawProcessor.imgdata.params.fbdd_noiserd = 0;
 	
 	//---- Decoupe des donnees par couleur
 	RawProcessor.dcraw_process();

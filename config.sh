@@ -2,10 +2,11 @@
 
 #-----------------------------------------------------------------------
 #
-#---- Script de configuration a sourcer pour astroViewer
+#---- Script de configuration a sourcer pour astroTools
 #
 #-----------------------------------------------------------------------
 
+ASTROTOOLS_ROOT=/home/sether/ASTRO/astroTools
 EXTERNE_PERSO_ROOT=/home/sether/Externes_perso
 EXTERNE_TAROT_ROOT=/home/sether/Externes_tarot
 
@@ -27,5 +28,8 @@ export BMP_INC=${EXTERNE_PERSO_ROOT}/bitmap
 #---- libjpeg
 #paquet libjpeg-turbo-devel.x86_64
 
+#---- libAstroTools
+export LIBASTROTOOLS_INC=${ASTROTOOLS_ROOT}/libAstroTools/include
+export LIBASTROTOOLS_LIB=${ASTROTOOLS_ROOT}/libAstroTools/lib
 
-export LD_LIBRARY_PATH=${LIBRAW_LIB}:${OPENCV_LIB}:${TIFF_LIB}:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=${LIBRAW_LIB}:${OPENCV_LIB}:${TIFF_LIB}:${LIBASTROTOOLS_LIB}:$LD_LIBRARY_PATH

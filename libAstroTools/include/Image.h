@@ -114,8 +114,11 @@ class Image
     //---- Lectude d'une ligne image jpeg
     bool loadJpegLine(const std::string & filePath, int indexLine);
 
-    //---- Ecriture d'une image en tiff 8 ou 16 bits
-    bool writeImTiff(const std::string & filePath);
+    //---- Ecriture d'une image en tiff 16 bits
+    bool writeImTiff16b(const std::string & filePath);
+    
+    //---- Ecriture d'une image en tiff 8 bits
+    bool writeImTiff8b(const std::string & filePath);
     
     //---- Creation d'une imagette avec origine pixellaire
     Image getRoi(int x0, int y0, int dx, int dy) const;
@@ -143,8 +146,11 @@ class Image
     bool divByIm(const Image & imDiv, double biais = 0.0);
     
     //---- Binarisation par seuillage
-    Image seuillage(double seuil);
-
+    Image seuillage(double seuil) const;
+    
+    //---- Binarisation par seuillage automatique sur la moyenne du canal vert
+    Image seuillageMeanAuto();
+    
     //---- Calcul le profil suivant une ligne
     std::vector<double> lineProfil(int line, int colMin, int colMax);
 
@@ -152,7 +158,7 @@ class Image
     std::vector<double> colProfil(int col, int lineMin, int lineMax);
 
     //---- Calcul de l'histogramme de l'image
-    std::vector<double> computeHisto(int nbClasse);
+    std::vector<double> computeHisto(int nbClasse) const;
 
     //---- Calcul d'un gradient vertical
     void computeVerticalGradient(double & redCoeff, double & greenCoeff, double & blueCoeff);

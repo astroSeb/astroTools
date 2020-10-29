@@ -5,10 +5,16 @@ CFLAGS = -g -Wall -fpic -std=c++0x
 
 #---- Compilation de la bibliotheque libAstroTools
 SRCS = src/Image.cpp \
-       src/Util.cpp
+       src/Util.cpp \
+       src/Zncc.cpp \
+       src/Display.cpp \
+       src/ObjectDetector.cpp
 
 OBJS = Image.o \
-       Util.o
+       Util.o \
+       Zncc.o \
+       Display.o \
+       ObjectDetector.o
        
        
 MYLIB = libAstroTools.so

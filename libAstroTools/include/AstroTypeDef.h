@@ -16,7 +16,9 @@ namespace astroT
     {
         RED,
         GREEN,
-        BLUE
+        BLUE,
+        WHITE,
+        BLACK
     };
     
     //---- Structure bounding box
@@ -26,6 +28,16 @@ namespace astroT
         int xMax;
         int yMin;
         int yMax;
+    };
+    
+    //---- Structure coordonnees d'un point en double
+    struct sPointD
+    {
+        double x;
+        double y;
+        
+        sPointD() { x = 0.0; y = 0.0; }
+        sPointD(double X, double Y) { x = X; y = Y; }
     };
 
 //---- Fin namespace astroT

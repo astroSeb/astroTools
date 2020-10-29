@@ -356,6 +356,8 @@ bool Image::load(const std::string & filePath)
         std::cout << "ERREUR : Format d'image " << extension << " inconnu" << std::endl;
         result = false;
     }
+    
+    //std::cout << "### maxR " << m_maxRed << ", maxG " << m_maxGreen << ", maxB " << m_maxBlue << std::endl;
 
     return result;
 }
@@ -976,9 +978,9 @@ bool Image::loadJpegLine(const std::string & filePath, int indexLine)
 
 
 //----------------------------------------------------------------------
-//---- Ecriture d'une image en tiff 8 ou 16 bits
+//---- Ecriture d'une image en tiff 16 bits
 //----------------------------------------------------------------------
-bool Image::writeImTiff(const std::string & filePath)
+bool Image::writeImTiff16b(const std::string & filePath)
 {
     //---- Ouverture d'un nouveau fichier tiff
     TIFF * out = TIFFOpen(filePath.c_str(), "w");
@@ -1013,6 +1015,58 @@ bool Image::writeImTiff(const std::string & filePath)
     
     
     if( TIFFWriteRawStrip(out, 0, buffer, m_nbPixel*2*3) == -1)
+    {
+         std::cout << "ERREUR : Echec lors de l'ecriture du buffer" << std::endl;
+    }
+
+    TIFFWriteDirectory(out);
+    TIFFClose(out);
+    
+    delete [] buffer;
+    
+    return true;
+    
+}
+
+
+//----------------------------------------------------------------------
+//---- Ecriture d'une image en tiff 8 bits
+//----------------------------------------------------------------------
+bool Image::writeImTiff8b(const std::string & filePath)
+{
+    //---- Ouverture d'un nouveau fichier tiff
+    TIFF * out = TIFFOpen(filePath.c_str(), "w");
+
+    if ( out == NULL )
+    {
+        std::cout << "ERREUR : Echec lors de l'ecriture du fichier: " << filePath << std::endl;
+        return false;
+    }
+    
+    TIFFSetField(out, TIFFTAG_IMAGEWIDTH, m_dx);
+    TIFFSetField(out, TIFFTAG_IMAGELENGTH, m_dy);
+    TIFFSetField(out, TIFFTAG_SAMPLESPERPIXEL, 3);
+    TIFFSetField(out, TIFFTAG_BITSPERSAMPLE, 8);
+    TIFFSetField(out, TIFFTAG_ROWSPERSTRIP, m_dy);
+    TIFFSetField(out, TIFFTAG_ORIENTATION, (int)ORIENTATION_TOPLEFT);
+    TIFFSetField(out, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
+    TIFFSetField(out, TIFFTAG_COMPRESSION, COMPRESSION_NONE);
+    TIFFSetField(out, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
+    
+    uchar * buffer = new uchar[m_nbPixel*3];
+    int i = 0;
+    for (int index = 0; index < m_nbPixel; ++index)
+    {
+        buffer[i] = std::round(m_redData[index]);
+        i+=1;
+        buffer[i] = std::round(m_greenData[index]);
+        i+=1;
+        buffer[i] = std::round(m_blueData[index]);
+        i+=1;
+    }
+    
+    
+    if( TIFFWriteRawStrip(out, 0, buffer, m_nbPixel*3) == -1)
     {
          std::cout << "ERREUR : Echec lors de l'ecriture du buffer" << std::endl;
     }
@@ -1462,15 +1516,41 @@ bool Image::divByIm(const Image & imDiv, double biais)
 //----------------------------------------------------------------------
 //---- Binarisation par seuillage
 //----------------------------------------------------------------------
-Image Image::seuillage(double seuil)
+Image Image::seuillage(double seuil) const
 {
     Image imSeuil(m_dx, m_dy);
 
     //---- Parcours des pixels
     for (int index = 0; index < m_nbPixel; ++index)
     {
-        //std::cout << m_greenData[index] << ", " << seuil << std::endl;
-        if ( m_greenData[index] >= seuil )
+        if ( ((m_redData[index] + m_greenData[index] + m_blueData[index])/3.0) >= seuil )
+        {
+            imSeuil.m_redData[index] = 1;
+            imSeuil.m_greenData[index] = 1;
+            imSeuil.m_blueData[index] = 1;
+        }
+    }
+
+    imSeuil.m_maxRed = 1;
+    imSeuil.m_maxGreen = 1;
+    imSeuil.m_maxBlue = 1;
+
+    return imSeuil;
+}
+
+
+//----------------------------------------------------------------------
+//---- Binarisation par seuillage automatique sur la moyenne du canal vert
+//----------------------------------------------------------------------
+Image Image::seuillageMeanAuto()
+{
+    Image imSeuil(m_dx, m_dy);
+
+    //---- Parcours des pixels
+    for (int index = 0; index < m_nbPixel; ++index)
+    {
+        
+        if ( m_greenData[index] >= 2.0*m_meanGreen )
         {
             imSeuil.m_redData[index] = MAX_8_BIT;
             imSeuil.m_greenData[index] = MAX_8_BIT;
@@ -1524,7 +1604,7 @@ std::vector<double> Image::colProfil(int col, int lineMin, int lineMax)
 //----------------------------------------------------------------------
 //---- Calcul de l'histogramme de l'image
 //----------------------------------------------------------------------
-std::vector<double> Image::computeHisto(int nbClasse)
+std::vector<double> Image::computeHisto(int nbClasse) const
 {
     //---- Calcul des min / max de l'image
     double valMin = std::numeric_limits<double>::max();
@@ -1540,11 +1620,11 @@ std::vector<double> Image::computeHisto(int nbClasse)
         if ( currentVal > valMax ) { valMax = currentVal; }
         
     }
-    std::cout << "#minmax " << valMin << ", " << valMax << std::endl;
+    //std::cout << "#minmax " << valMin << ", " << valMax << std::endl;
 
     //---- Calcul de la largeur radiometrique d'une classe
     double classSize = (valMax - valMin) / (double)nbClasse;
-
+    //std::cout << "#classSize " << classSize << std::endl;
 
     int classIndex = 0;
     //--- Calcul de l'histogramme
@@ -1556,16 +1636,21 @@ std::vector<double> Image::computeHisto(int nbClasse)
         
         classIndex = std::floor(currentVal / classSize) - 1;
         
+        if ( classIndex < 0 ) { classIndex = 0; }
+        if ( classIndex >= nbClasse ) { classIndex = nbClasse - 1; }
+        
         histo[classIndex] += 1;
     }
 
     //---- Mise en forme de l'histogramme
     std::vector<double> vecHisto;
-    for (unsigned int index = 0; index < vecHisto.size(); ++index)
+    int nbtot = 0;
+    for (int index = 0; index < nbClasse; ++index)
     {
+        nbtot += histo[index];
         vecHisto.push_back(histo[index]);
     }
-
+    //std::cout << "#nbtot " << nbtot << ", nbpix " << m_nbPixel << std::endl;
     return vecHisto;
 }
 

@@ -199,10 +199,11 @@ bool selectFirstPoint(const astroT::Image & currentImage, bool fullDynamic, cv::
     cv::Mat imMat = astroT::imToCvMat(currentImage, fullDynamic);
     cv::Point2f selectedPoint;
 
-    namedWindow("Display", cv::WINDOW_NORMAL);
+    namedWindow("Display", cv::WINDOW_GUI_EXPANDED);
     cv::setMouseCallback("Display", CallBackFunc, &selectedPoint);
 
     cv::imshow("Display", imMat);
+    cv::resizeWindow("Display", 640, 480);
     cv::waitKey(0);
 
     //---- Selection minutieuse
@@ -218,9 +219,10 @@ bool selectFirstPoint(const astroT::Image & currentImage, bool fullDynamic, cv::
 
     //--- Detection de l'etoile
     astroT::sBoundingBox starBb;
-    astroT::ObjectDetector detector(imSeuil);
+    //astroT::ObjectDetector detector(imSeuil);
+    astroT::ObjectDetector detector;
 
-    if ( detector.detectBiggestObj(starBb) )
+    if ( detector.detectBiggestObj(imSeuil, starBb) )
     {
         //std::cout << "### BBox pattern: X " << starBb.xMin << " -> " << starBb.xMax << ", Y " << starBb.yMin << " -> " << starBb.yMax << std::endl;
         astroT::Image imStar = imZoom.getRoi(starBb);
@@ -233,7 +235,7 @@ bool selectFirstPoint(const astroT::Image & currentImage, bool fullDynamic, cv::
         starCenter.y = starCenter.y - HALF_PATTERN_WIN + starBb.yMin + selectedPoint.y;
         std::cout << "INFO   : Point de liaison : " << starCenter << std::endl;
         
-        astroT::zoomOnPoint(currentImage, starCenter, true);
+        //astroT::zoomOnPoint(currentImage, starCenter, true);
         
     } else {
         
@@ -322,6 +324,7 @@ int main(int argc, char ** argv)
         std::cout << "ERREUR : Echec lors du chargement de l'image " << vecImPath[0] << std::endl;
         return 1;
     }
+    std::cout << "INFO   : Premiere image chargee" << std::endl;
     //firstImage.disp();
 
     //--- Suppression du gradient
@@ -343,6 +346,7 @@ int main(int argc, char ** argv)
         std::cout << "ERREUR : Echec lors du chargement de l'image de dark " << masterDarkPath << std::endl;
         return 1;
     }
+    std::cout << "INFO   : Image du DARK chargee" << std::endl;
     //------------------------------------------------------------------
     
     

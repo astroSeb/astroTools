@@ -37,7 +37,8 @@ PROG_ASTRO_STACKER = bin/astroStacker
 
 
 #---- Lib externes sans libAstroTools
-LIBS = 	-lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_features2d -lopencv_calib3d -lopencv_nonfree -lopencv_flann -ltiff -lraw -ljpeg
+#LIBS = 	-lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_features2d -lopencv_calib3d -lopencv_nonfree -lopencv_flann -ltiff -lraw -ljpeg
+LIBS = 	-lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_features2d -lopencv_calib3d -lopencv_flann -ltiff -lraw -ljpeg
 
 INCLUDE = -I include \
 		  -I $(OPENCV_INC) \
@@ -51,7 +52,7 @@ LIB_DIR = -L $(OPENCV_LIB) \
 
 
 #---- Lib externes avec libAstroTools
-LIBS_NEW = -lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_features2d -lopencv_calib3d -lopencv_nonfree -lopencv_flann \
+LIBS_NEW = -lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_features2d -lopencv_calib3d -lopencv_flann \
 		   -ltiff -lraw -ljpeg -lAstroTools
 
 INCLUDE_NEW = -I $(LIBASTROTOOLS_INC) \

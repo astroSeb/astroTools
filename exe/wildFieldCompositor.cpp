@@ -253,7 +253,7 @@ bool selectFirstPoint(const astroT::Image & currentImage, bool fullDynamic, cv::
 void usage()
 {
     std::cout << "Usage: ./wildFieldCompositor   <Repertoire des images>" << std::endl;
-    std::cout << "                               <Format des images (RAW, JPG, tif, ...)>" << std::endl;
+    std::cout << "                               <Format des images (RAW, JPG, TIF, ...)>" << std::endl;
     std::cout << "                               <Image master dark>" << std::endl;
     std::cout << "                               <Gradient VERTICAL, HORIZONTAL, NULL>" << std::endl;
     std::cout << "                               [<Masque premier plan>]" << std::endl;
@@ -295,9 +295,10 @@ int main(int argc, char ** argv)
 
     //------------------------------------------------------------------
     //---- Test sur le format des images
-    if ( (format != "RAW") && (format != "JPG") && (format != "jpg") && (format != "tif") )
+    if ( (format != "RAW") && (format != "JPG") && (format != "TIF") )
     {
         std::cout << "ERREUR : Le format demande " << format << " n'est pas pris en compte" << std::endl;
+        std::cout << "ERREUR : Les formats pris en compte sont RAW, JPG, TIF" << std::endl;
         return 1;
     }
     //------------------------------------------------------------------
@@ -313,6 +314,11 @@ int main(int argc, char ** argv)
     }
     int nbImages = vecImPath.size();
     std::cout << "INFO   : " << nbImages << " images a traiter" << std::endl;
+    if ( nbImages < 2 )
+    {
+        std::cout << "ERREUR : Au moins deux images sont necessaires pour les traitements" << std::endl;
+        return 1;
+    }
     //------------------------------------------------------------------
     
     

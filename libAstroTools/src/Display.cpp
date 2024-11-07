@@ -122,6 +122,14 @@ void addColorRectangle(cv::Mat & currentIm, const sPointD & centre, int rayon, c
 
 
 
+
+
+
+
+
+
+
+
 //----------------------------------------------------------------------
 //---- Conversion Image vers cv::Mat 8 bits
 //----------------------------------------------------------------------
@@ -350,8 +358,9 @@ int dispIm(const Image & im, bool fullRange)
     //---- Conversion au format openCV en 8 bits
     cv::Mat currentIm = imToCvMat(im, fullRange);
 
-    namedWindow("Display", cv::WINDOW_NORMAL);
+    namedWindow("Display", cv::WINDOW_GUI_EXPANDED);
     cv::imshow("Display", currentIm);
+    cv::resizeWindow("Display", 640, 480);
 
     int key = cv::waitKey(0);
 

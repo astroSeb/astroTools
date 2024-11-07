@@ -8,6 +8,7 @@
 #include <iostream>
 
 #include "Image.h"
+#include "Display.h"
 
 
 
@@ -44,13 +45,17 @@ int main(int argc, char ** argv)
         std::cout << "ERREUR : Echec lors du chargement de l'image " << imPath << std::endl;
         return 1;
     }
+
+    //---- Affichage
+    dispIm(im, false);
+
     
-    //---- Export
-    if ( ! im.writeImTiff(imOutPath) )
+    /* //---- Export
+    if ( ! im.writeImTiff16b(imOutPath) )
     {
         std::cout << "ERREUR : Echec lors de l'export de l'image " << imOutPath << std::endl;
         return 1;
-    }
+    } */
 
     return 0;
 }

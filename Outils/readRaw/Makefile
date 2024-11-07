@@ -5,7 +5,7 @@ CFLAGS = -g -Wall -std=c++0x
 SRCS = readRaw.cpp
 PROG = readRaw
 
-LIBS = 	-lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_features2d -lopencv_calib3d -lopencv_nonfree -lopencv_flann -lraw
+LIBS = 	-lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_features2d -lopencv_calib3d -lopencv_flann -lraw
 
 INCLUDE = -I include \
 		  -I $(OPENCV_INC) \

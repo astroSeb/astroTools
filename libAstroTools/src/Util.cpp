@@ -14,47 +14,69 @@ namespace astroT
 //----------------------------------------------------------------------
 bool parseDir(const std::string & dirPath, const std::string & format, std::vector<std::string> & imagePathVect)
 {
-	std::string pattern = "";
+	std::string pattern1 = "";
+	std::string pattern2 = "";
 	
 	if ( format == "RAW" )
 	{
-		pattern = ".NEF";
+		pattern1 = ".NEF";
+		pattern2 = ".NEF";
 	} else if ( format == "JPG" )
 	{
-		pattern = ".JPG";
-	} else if ( format == "jpg" )
-	{
-		pattern = ".jpg";
+		pattern1 = ".JPG";
+		pattern2 = ".jpg";
+		
 	} else if ( format == "TIF" )
 	{
-		pattern = ".tif";
+		pattern1 = ".TIF";
+		pattern2 = ".tif";
 	} else {
 		std::cout << "ERREUR : Format d'image " << format << " inconnu" << std::endl;
 		return false;
 	}
 	
+	struct dirent * ent;
+	std::string currentImName;
 	
+	//---- Test pattern 1
 	DIR * rep = opendir(dirPath.c_str());
-
 	if ( rep == NULL )
 	{
 		std::cout << "ERREUR : Le repertoire " << dirPath << " n'est pas accessible." << std::endl;
 		return false;
 	}
 
-	struct dirent * ent;
-	std::string currentImName;
 	while ((ent = readdir(rep)) != NULL)
 	{
-		if ( strstr(ent->d_name,pattern.c_str()) != NULL)
+		if ( strstr(ent->d_name,pattern1.c_str()) != NULL)
 		{
 			currentImName = dirPath + "/" + ent->d_name;
 
 			imagePathVect.push_back(currentImName);
 		}
 	}
-	
+
 	closedir(rep);
+
+
+	//---- Test pattern 2
+	if ( imagePathVect.size() == 0 )
+	{
+		rep = opendir(dirPath.c_str());
+
+		while ((ent = readdir(rep)) != NULL)
+		{
+			if ( strstr(ent->d_name,pattern2.c_str()) != NULL)
+			{
+				currentImName = dirPath + "/" + ent->d_name;
+
+				imagePathVect.push_back(currentImName);
+			}
+		}
+
+		closedir(rep);
+	}
+	
 	
 	return true;
 }

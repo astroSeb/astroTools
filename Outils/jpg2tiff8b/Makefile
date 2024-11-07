@@ -6,7 +6,7 @@ SRCS = jpg2tiff8b.cpp
 
 PROG = jpg2tiff8b
 
-LIBS = 	-lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_features2d -lopencv_calib3d -lopencv_nonfree -lopencv_flann \
+LIBS = 	-lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_features2d -lopencv_calib3d -lopencv_flann \
 		-ltiff -lraw -ljpeg \
 		-lAstroTools
 

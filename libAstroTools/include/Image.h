@@ -174,6 +174,12 @@ class Image
     
     //---- Merge with mask
     void mergeWithMask(const Image & firstPlan, const Image & mask);
+
+    //---- Calcul statistiques du fond du ciel
+    void computeBgStats(std::vector<double> & vecBgMean, std::vector<double> & vecBgSigma);
+
+    //---- Calcul de la variance dans un bounding box
+    float computeVarianceRoi(const sBoundingBox & roi);
     
     
 protected:

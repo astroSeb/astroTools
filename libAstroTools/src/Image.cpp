@@ -1883,5 +1883,145 @@ void Image::mergeWithMask(const Image & firstPlan, const Image & mask)
     
 }
 
+
+//----------------------------------------------------------------------
+//---- Calcul statistiques du fond du ciel
+//----------------------------------------------------------------------
+void Image::computeBgStats(std::vector<double> & vecBgMean, std::vector<double> & vecBgSigma)
+{
+
+    int blocSize = 7;
+    int gridStep = 500;
+
+    // Nombre de mesures
+    int nbMesures = ( ( ( m_dy - blocSize ) / gridStep ) + 1 ) * ( ( ( m_dx - blocSize ) / gridStep ) + 1 );
+    std::cout << "DEBUG  : " << nbMesures << " mesures dans l'image" << std::endl;
+
+    // Initialisations
+    int x, y, wx, wy;
+    std::vector<double> vecMeanGreen, vecMeanRed, vecMeanBlue;
+    std::vector<double> vecSigmaGreen, vecSigmaRed, vecSigmaBlue;
+    int indexMesure = 0;
+    double currentMeanVert = 0.0;
+    double currentMeanRouge = 0.0;
+    double currentMeanBleu = 0.0;
+    double currentVarianceVert = 0.0;
+    double currentVarianceRouge = 0.0;
+    double currentVarianceBleu = 0.0;
+
+    // Parcours de l'image et calcul moyenne ecart-type des valeurs
+    // par bloc de 7*7 pixels tous les step pixels
+    for( y = 0; y < m_dy - blocSize; y += gridStep )
+    {
+        for( x = 0; x < m_dx - blocSize; x += gridStep )
+        {
+            // Calcul moyenne dans la fenetre 7*7 autour du pixel courant
+            currentMeanVert = 0.0;
+            currentMeanRouge = 0.0;
+            currentMeanBleu = 0.0;
+
+            for( wy = 0; wy < blocSize; ++wy )
+            {
+                for( wx = 0; wx < blocSize; ++wx )
+                {
+                    currentMeanVert += m_greenData[(y + wy)*m_dx + (x + wx)];
+                    currentMeanRouge += m_redData[(y + wy)*m_dx + (x + wx)];
+                    currentMeanBleu += m_blueData[(y + wy)*m_dx + (x + wx)];
+                    std::cout << "DEBUG   : Pixel (" << x+wx << ", " << y+wy << ") : " << currentMeanVert << ", " << currentMeanRouge << ", " << currentMeanBleu << std::endl;
+                }
+            }
+
+            currentMeanVert /= blocSize*blocSize;
+            vecMeanGreen.push_back(currentMeanVert);
+
+            currentMeanRouge /= blocSize*blocSize;
+            vecMeanRed.push_back(currentMeanRouge);
+            
+            currentMeanBleu /= blocSize*blocSize;
+            vecMeanBlue.push_back(currentMeanBleu);
+            std::cout << "DEBUG  : Moyenne du bloc (vert/rouge/bleu) : " << currentMeanVert << ", " << currentMeanRouge << ", " << currentMeanBleu << std::endl;
+
+            // Calcul ecart-type dans la fenetre 7*7 autour du pixel courant
+            currentVarianceVert = 0.0;
+            currentVarianceRouge = 0.0;
+            currentMeanBleu = 0.0;
+
+            for( wy = 0; wy < blocSize; ++wy )
+            {
+                for( wx = 0; wx < blocSize; ++wx )
+                {
+                    currentVarianceVert += ( m_greenData[(y + wy)*m_dx+(x + wx)] - currentMeanVert ) * ( m_greenData[(y + wy)*m_dx+(x + wx)] - currentMeanVert );
+                    currentVarianceRouge += ( m_redData[(y + wy)*m_dx+(x + wx)] - currentMeanRouge ) * ( m_redData[(y + wy)*m_dx+(x + wx)] - currentMeanRouge );
+                    currentMeanBleu += ( m_blueData[(y + wy)*m_dx+(x + wx)] - currentMeanBleu ) * ( m_blueData[(y + wy)*m_dx+(x + wx)] - currentMeanBleu );
+                }
+            }
+
+            currentVarianceVert /= blocSize*blocSize;
+            vecSigmaGreen.push_back(currentVarianceVert);
+
+            currentVarianceRouge /= blocSize*blocSize;
+            vecSigmaRed.push_back(currentVarianceRouge);
+
+            currentMeanBleu /= blocSize*blocSize;
+            vecSigmaBlue.push_back(currentVarianceBleu);
+
+            std::cout << "DEBUG  : Variance du bloc (vert/rouge/bleu) : " << currentVarianceVert << ", " << currentVarianceRouge << ", " << currentMeanBleu << std::endl;
+
+            indexMesure += 1;
+        }
+    }
+
+    // Valeurs medianes des moyennes et ecart-types par bloc 7*7
+    vecBgMean[0] = medianVecD(vecMeanGreen);
+    vecBgSigma[0] = medianVecD(vecSigmaGreen);
+    
+    vecBgMean[1] = medianVecD(vecMeanRed);
+    vecBgSigma[1] = medianVecD(vecSigmaRed);
+
+    vecBgMean[2] = medianVecD(vecMeanBlue);
+    vecBgSigma[2] = medianVecD(vecSigmaBlue);
+
+
+    std::cout << "DEBUG  : BGMEAN (vert/rouge/bleu) : " << vecBgMean[0] << ", " << vecBgMean[1] << ", " << vecBgMean[2] << std::endl;
+    std::cout << "DEBUG  : BGSIGMA (vert/rouge/bleu) : " << vecBgSigma[0] << ", " << vecBgSigma[1] << ", " << vecBgSigma[2] << std::endl;
+
+}
+
+//----------------------------------------------------------------------
+//---- Calcul de la variance dans un bounding box (canal vert)
+//----------------------------------------------------------------------
+float Image::computeVarianceRoi(const sBoundingBox & roi)
+{
+    //---- Calcul moyenne dans la ROI
+    double moyenne = 0.0;
+    double nbPix = 0.0;
+    for (int lig = roi.yMin; lig <= roi.yMax; ++lig)
+    {
+        for (int col = roi.xMin; col <= roi.xMax; ++col)
+        {
+            moyenne += m_greenData[lig*m_dx+col];
+            nbPix += 1.0;
+        }
+    }
+    moyenne /= nbPix;
+
+
+    //---- Calcul de la variance
+    double variance = 0.0;
+    for (int lig = roi.yMin; lig <= roi.yMax; ++lig)
+    {
+        for (int col = roi.xMin; col <= roi.xMax; ++col)
+        {
+            variance += (m_greenData[lig*m_dx+col] - moyenne) * (m_greenData[lig*m_dx+col] - moyenne);
+        }
+    }
+    variance /= nbPix;
+
+    return variance;
+}
+
+
+
+
 //---- Fin namespace astroT
 }

@@ -16,20 +16,26 @@ bool parseDir(const std::string & dirPath, const std::string & format, std::vect
 {
 	std::string pattern1 = "";
 	std::string pattern2 = "";
+	std::string pattern3 = "";
 	
 	if ( format == "RAW" )
 	{
 		pattern1 = ".NEF";
 		pattern2 = ".NEF";
+		pattern3 = ".NEF";
+
 	} else if ( format == "JPG" )
 	{
 		pattern1 = ".JPG";
 		pattern2 = ".jpg";
+		pattern3 = ".jpeg";
 		
 	} else if ( format == "TIF" )
 	{
 		pattern1 = ".TIF";
 		pattern2 = ".tif";
+		pattern3 = ".tiff";
+
 	} else {
 		std::cout << "ERREUR : Format d'image " << format << " inconnu" << std::endl;
 		return false;
@@ -76,6 +82,25 @@ bool parseDir(const std::string & dirPath, const std::string & format, std::vect
 
 		closedir(rep);
 	}
+
+	//---- Test pattern 3
+	if ( imagePathVect.size() == 0 )
+	{
+		rep = opendir(dirPath.c_str());
+
+		while ((ent = readdir(rep)) != NULL)
+		{
+			if ( strstr(ent->d_name,pattern3.c_str()) != NULL)
+			{
+				currentImName = dirPath + "/" + ent->d_name;
+
+				imagePathVect.push_back(currentImName);
+			}
+		}
+
+		closedir(rep);
+	}
+
 	
 	
 	return true;

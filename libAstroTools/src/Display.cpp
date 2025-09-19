@@ -404,8 +404,9 @@ int dispRoi(const Image & im, const std::vector<sBoundingBox> & vecRoi, bool ful
         addColorRectangle(currentIm, *iRoi, GREEN);
     }
     
-    namedWindow("Display", cv::WINDOW_NORMAL);
+    namedWindow("Display", cv::WINDOW_GUI_EXPANDED);
     cv::imshow("Display", currentIm);
+    cv::resizeWindow("Display", 640, 480);
 
     int key = cv::waitKey(0);
 

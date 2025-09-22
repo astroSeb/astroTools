@@ -9,35 +9,18 @@ import glob
 
 import cv2
 
-from astropy.io import fits
+pathOfMain = os.path.dirname(os.path.abspath(__file__))
+sys.path.append( os.path.join(pathOfMain, "..", "..") )
+
+from libPyAstroTools import utils
+from libPyAstroTools import display
 
 
 
 
-#-----------------------------------------------------------------------
-#---- Export image fits dematricee : 3 canneaux
-#-----------------------------------------------------------------------
-def exportIm(im, im_path):
-
-    hdu = fits.PrimaryHDU(im)
-    hdul = fits.HDUList([hdu])
-    hdul.writeto(im_path)
 
 
 
-#-----------------------------------------------------------------------
-#---- Lecture image
-#-----------------------------------------------------------------------
-def loadIm(filePath):
-
-    with fits.open(filePath) as hdulist:
-        image = hdulist[0].data.astype('u2')
-        print("DEBUG  : taille image", image.shape)
-
-        #print("DEBUG  : Header")
-        #print(hdulist[0].header)
-    
-    return image
 
 
 #-----------------------------------------------------------------------
@@ -72,7 +55,7 @@ def main():
         im_name = os.path.basename(im_path)
         print("INFO   : Traitement de l'image", im_name)
         #--- Chargement de l'image
-        im = loadIm(im_path)
+        im, nb_channels = utils.loadImFits(im_path)
 
         #---- Dematricage
         im_dematric = cv2.cvtColor(im, cv2.COLOR_BAYER_RGGB2BGR)
@@ -80,7 +63,7 @@ def main():
 
         #---- Export dans une image fits 3 canneaux
         im_out_path = os.path.join(args.output_dir, "Demosaic_" + im_name)
-        exportIm(im_dematric, im_out_path)
+        utils.exportImFits(im_dematric, im_out_path)
         print("INFO   : Export image dematricee :", im_out_path)
 
 

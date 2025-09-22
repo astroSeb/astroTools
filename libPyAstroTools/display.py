@@ -1,6 +1,6 @@
 #-----------------------------------------------------------------------
 #
-#---- display.py : Fonction d'affichage
+#---- display.py : Fonctions d'affichage
 #
 #-----------------------------------------------------------------------
 
@@ -12,33 +12,7 @@ from matplotlib.colors import Normalize
 import matplotlib.cm as cm
 
 
-#-----------------------------------------------------------------------
-#---- Calcul moyenne ecart-type fond du ciel
-#-----------------------------------------------------------------------
-def computeBgStats(im, blocSize=7):
-    
-    #---- Nombre de bloc en ligne
-    nbBlocLine = im.shape[0] // blocSize
-    
-    #---- Nombre de bloc en colonnes
-    nbBlocCol = im.shape[1] // blocSize
-    
-    meanList = []
-    stdList = []
-    
-    for y in range(nbBlocLine):
-        for x in range(nbBlocCol):
-            
-            x0 = x*blocSize
-            y0 = y*blocSize
-            meanList.append(np.mean(im[y0:y0+blocSize, x0:x0+blocSize]))
-            stdList.append(np.std(im[y0:y0+blocSize, x0:x0+blocSize]))
-    
-    bgMean = np.median(meanList)
-    bgSigma = np.median(stdList)
-    
-    return bgMean, bgSigma
-
+from libPyAstroTools import utils
 
 
 #-----------------------------------------------------------------------
@@ -50,7 +24,7 @@ def dispColor16Bit(im):
     fig, ax = plt.subplots(1, 3, sharex=True, sharey=True)
 
     #--- Canal 0
-    bgMean0, bgSigma0 = computeBgStats(im[:, :, 0])
+    bgMean0, bgSigma0 = utils.computeBgStats(im[:, :, 0])
     vMinDyn0 = bgMean0-6*bgSigma0
     vMaxDyn0 = bgMean0+10*bgSigma0
     norm0 = Normalize(vmin=vMinDyn0, vmax=vMaxDyn0)
@@ -58,7 +32,7 @@ def dispColor16Bit(im):
     ax[0].imshow(im[:,:,0], cmap='gray', norm=norm0)
 
     #--- Canal 1
-    bgMean1, bgSigma1 = computeBgStats(im[:, :, 1])
+    bgMean1, bgSigma1 = utils.computeBgStats(im[:, :, 1])
     vMinDyn1 = bgMean1-6*bgSigma1
     vMaxDyn1 = bgMean1+10*bgSigma1
     norm1 = Normalize(vmin=vMinDyn1, vmax=vMaxDyn1)
@@ -66,7 +40,7 @@ def dispColor16Bit(im):
     ax[1].imshow(im[:,:,1], cmap='gray', norm=norm1)
 
     #--- Canal 2
-    bgMean2, bgSigma2 = computeBgStats(im[:, :, 2])
+    bgMean2, bgSigma2 = utils.computeBgStats(im[:, :, 2])
     vMinDyn2 = bgMean2-6*bgSigma2
     vMaxDyn2 = bgMean2+10*bgSigma2
     norm2 = Normalize(vmin=vMinDyn2, vmax=vMaxDyn2)
@@ -83,4 +57,25 @@ def dispColor16Bit(im):
     im_color[:,:,2] = np.clip( ((im[:,:,0]-vMinDyn0) * 255) / vMaxDyn0, 0, 255 )
 
     plt.imshow(im_color)
+    plt.show()
+
+
+#-----------------------------------------------------------------------
+#---- Affichage image mono 16 bit
+#-----------------------------------------------------------------------
+def dispMono16Bit(im):
+    
+    print("INFO   : Affichage image mono canal")
+
+    #---- Ajustement de la dynamique
+    bgMean, bgSigma = utils.computeBgStats(im)
+    vMinDyn = bgMean-6*bgSigma
+    vMaxDyn = bgMean+10*bgSigma
+    norm = Normalize(vmin=vMinDyn, vmax=vMaxDyn)
+    print("INFO   : Normalisation de la dynamique entre", vMinDyn, "et", vMaxDyn, "ADU")
+
+    #---- Affichage
+    fig, ax = plt.subplots()
+    ax.imshow(im, cmap='gray', norm=norm)
+    fig.colorbar(cm.ScalarMappable(norm=norm, cmap='gray'), ax=ax)
     plt.show()

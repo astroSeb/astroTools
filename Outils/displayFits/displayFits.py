@@ -34,17 +34,19 @@ def main():
     
     #---- Chargement de l'image
     im, nb_channel = utils.loadImFits(args.im_path)
+    #print("INFO   : Image", im.shape, nb_channel)
 
     #---- Affichage
     if nb_channel == 1:
+        #print("INFO   : Image mono-canal", im.shape, nb_channel)
         display.dispMono16Bit(im)
         
     elif nb_channel == 3:
+        #print("INFO   : Image multi-canal", im.shape, nb_channel)
         display.dispColor16Bit(im)
+
+
         
-    else:
-        print("ERREUR : Nombre de canal", nb_channel, "inconnu")
-        sys.exit(2)
 
 
 

@@ -44,15 +44,126 @@ def loadImFits(filePath):
 
     with fits.open(filePath) as hdulist:
 
-        image = hdulist[0].data.astype('u2')
-        print("DEBUG  : taille image", image.shape)
+        #image = hdulist[0].data.astype('u2')
+        image = hdulist[0].data.astype(np.uint16)
+        #print("DEBUG  : taille image", image.shape)
 
+        #---- Image mono-canal
         if len(image.shape) == 2:
             nb_channel = 1
+            im_convert = image
+
+            #--- Suppression pixels negatifs
+            im_convert[im_convert<0] = 0
+        
+        #---- Image multi-canal : on veut le nombre de canaux en dimension 3
         else:
-            nb_channel = image.shape[2]
+            #print("DEBUG  : nb channel index", np.argmin(image.shape))
+            channel_index = np.argmin(image.shape)
+            im_convert = np.zeros((image.shape[1], image.shape[2], 3), dtype=np.uint16)
+
+            if channel_index == 0:
+                im_convert[:, :, 0] = image[0, :, :]
+                im_convert[:, :, 1] = image[1, :, :]
+                im_convert[:, :, 2] = image[2, :, :]
+            
+            elif channel_index == 1:
+                im_convert[:, :, 0] = image[:, 0, :]
+                im_convert[:, :, 1] = image[:, 1, :]
+                im_convert[:, :, 2] = image[:, 2, :]
+
+            else:
+                im_convert = image
+            
+            nb_channel = im_convert.shape[2]
+
+            #--- Suppression pixels negatifs
+            im_convert[im_convert<0] = 0
+
+        #print("DEBUG  : im_convert", im_convert.shape)
     
-    return image, nb_channel
+    return im_convert, nb_channel
+
+
+#-----------------------------------------------------------------------
+#---- Lecture image fits
+#-----------------------------------------------------------------------
+def loadImFitsFloat32(filePath):
+
+    with fits.open(filePath) as hdulist:
+
+        image = hdulist[0].data
+        #print("DEBUG  : taille image", image.shape)
+
+        #---- Image mono-canal
+        if len(image.shape) == 2:
+            nb_channel = 1
+            im_convert = image.astype(np.float32)
+
+        #---- Image multi-canal : on veut le nombre de canaux en dimension 3
+        else:
+            #print("DEBUG  : nb channel index", np.argmin(image.shape))
+            channel_index = np.argmin(image.shape)
+            im_convert = np.zeros((image.shape[1], image.shape[2], 3), dtype=np.float32)
+
+            if channel_index == 0:
+                im_convert[:, :, 0] = image[0, :, :].astype(np.float32)
+                im_convert[:, :, 1] = image[1, :, :].astype(np.float32)
+                im_convert[:, :, 2] = image[2, :, :].astype(np.float32)
+            
+            elif channel_index == 1:
+                im_convert[:, :, 0] = image[:, 0, :].astype(np.float32)
+                im_convert[:, :, 1] = image[:, 1, :].astype(np.float32)
+                im_convert[:, :, 2] = image[:, 2, :].astype(np.float32)
+
+            else:
+                im_convert = image.astype(np.float32)
+            
+            nb_channel = im_convert.shape[2]
+    
+
+    return im_convert, nb_channel
+
+
+
+#-----------------------------------------------------------------------
+#---- Lecture image fits
+#-----------------------------------------------------------------------
+def loadImFitsFloat64(filePath):
+
+    with fits.open(filePath) as hdulist:
+
+        image = hdulist[0].data
+        #print("DEBUG  : taille image", image.shape)
+
+        #---- Image mono-canal
+        if len(image.shape) == 2:
+            nb_channel = 1
+            im_convert = image.astype(np.float64)
+
+        #---- Image multi-canal : on veut le nombre de canaux en dimension 3
+        else:
+            #print("DEBUG  : nb channel index", np.argmin(image.shape))
+            channel_index = np.argmin(image.shape)
+            im_convert = np.zeros((image.shape[1], image.shape[2], 3), dtype=np.float64)
+
+            if channel_index == 0:
+                im_convert[:, :, 0] = image[0, :, :].astype(np.float64)
+                im_convert[:, :, 1] = image[1, :, :].astype(np.float64)
+                im_convert[:, :, 2] = image[2, :, :].astype(np.float64)
+            
+            elif channel_index == 1:
+                im_convert[:, :, 0] = image[:, 0, :].astype(np.float64)
+                im_convert[:, :, 1] = image[:, 1, :].astype(np.float64)
+                im_convert[:, :, 2] = image[:, 2, :].astype(np.float64)
+
+            else:
+                im_convert = image.astype(np.float64)
+            
+            nb_channel = im_convert.shape[2]
+    
+
+    return im_convert, nb_channel
 
 
 #-----------------------------------------------------------------------
@@ -62,7 +173,7 @@ def exportImFits(im, im_path):
 
     hdu = fits.PrimaryHDU(im)
     hdul = fits.HDUList([hdu])
-    hdul.writeto(im_path)
+    hdul.writeto(im_path, overwrite=True)
 
 
 
